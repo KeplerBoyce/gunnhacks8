@@ -1,0 +1,23 @@
+{
+  "name": "gunnhacks8",
+  "version": "1.0.0",
+  "description": "Gunnhacks 8.0 project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KeplerBoyce/gunnhacks8.git"
+  },
+  "author": "Kepler Boyce",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KeplerBoyce/gunnhacks8/issues"
+  },
+  "homepage": "https://github.com/KeplerBoyce/gunnhacks8#readme",
+  "dependencies": {
+    "express": "^4.17.2",
+    "socket.io": "^4.4.1"
+  }
+}
