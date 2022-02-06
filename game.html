@@ -11,16 +11,32 @@
             body {
                 display: grid;
                 grid-template-areas:
-                    "t t t"
+                    "m t a"
                     "l l l"
                     "s s s"
                     "r r r"
                     "n n n"
                     "e p o"
                     "b b b";
-                grid-template-columns: auto 380px auto;
+                grid-template-columns: calc((100% - 380px)/2) 380px calc((100% - 380px)/2);
                 grid-template-rows: 8% 2px 5% 3% 3% 60% 20%;
             }
+            #homescreencontainer {
+                grid-area: m;
+                display: flex;
+                justify-content: right;
+                align-items: center;
+            }
+            #homescreen {
+                margin: 15px 40px 0 0;
+                padding: 6px 10px 5px;
+                font-size: 18px;
+                border: none;
+                border-radius: 5px;
+                background-color: #b64a4a;
+                color: #fff;
+            }
+            #homescreen:hover { filter: brightness(85%); cursor: pointer; }
             #title {
                 grid-area: t;
                 display: flex;
@@ -146,11 +162,6 @@
             });
             socket.on('opponentWon', function(data) {
                 if (data.roomcode === roomcode && data.opponentName === username) {
-                    socket.emit('requestScores', {roomcode: roomcode, username: username});
-                    canType = false;
-                    document.getElementById('resulttext').innerHTML = "The word was: " + answer.toUpperCase();
-                    if (lostGame) document.getElementById('nextround').innerHTML = data.username + " won the game!";
-                    else document.getElementById('nextround').innerHTML = "Next round starting in a few seconds...";
                     var grid = new Array(row + 1);
                     for (i = 0; i <= row; i++) {
                         var gridRow = new Array(5);
@@ -160,7 +171,14 @@
                         grid[i] = gridRow;
                     }
                     socket.emit('fillOpponentGrid', {roomcode: roomcode, username: username, grid: grid});
-                    if (!lostGame) nextRoundSequence();
+                    socket.emit('requestScores', {roomcode: roomcode, username: username});
+                    canType = false;
+                    document.getElementById('resulttext').innerHTML = "The word was: " + answer.toUpperCase();
+                    if (lostGame) document.getElementById('nextround').innerHTML = data.username + " won the game!";
+                    else {
+                        document.getElementById('nextround').innerHTML = "Next round starting in a few seconds...";
+                        nextRoundSequence(false);
+                    }
                 }
             });
             socket.on('transferGrid', function(data) {
@@ -176,11 +194,20 @@
                 if (data.roomcode == roomcode) {
                     document.getElementById("score").innerHTML = data.leftscore + " - " + data.rightscore;
                     if (data.leftscore === 4) wonGame = true;
-                    if (data.rightscore === 4) lostGame = true;
+                    else if (data.rightscore === 4) lostGame = true;
                 }
             });
             socket.on('newAnswer', function(data) {
-                if (data.roomcode === roomcode) answer = data.answer;
+                if (data.roomcode === roomcode) {
+                    answer = data.answer;
+                    console.log(answer);
+                }
+            });
+            socket.on('noGuesses', function(data) {
+                if (data.roomcode === roomcode && data.opponentName === username
+                    && row === 5 && lostGame) {
+                    //document.getElementById();
+                }
             });
             function initGrids() {
                 for (var row = 0; row < 6; row++) {
@@ -236,13 +263,15 @@
                             canType = false;
                             document.getElementById("resulttext").innerHTML = "You found the word!";
                             if (wonGame) document.getElementById('nextround').innerHTML = username + " won the game!";
-                            else document.getElementById('nextround').innerHTML = "Next round starting in 5...";
-                            if (!wonGame) nextRoundSequence();
+                            else {
+                                document.getElementById('nextround').innerHTML = "Next round starting in 5...";
+                                nextRoundSequence(true);
+                            }
                         }
-                        row++;
-                        col = 0;
-                        if (row === 6 && guess !== answer) {
-                            //ran out of guesses
+                        if (row === 5 && guess !== answer) {
+                            lostGame = true;
+                            document.getElementById('resulttext').innerHTML = "The word was: " + answer.toUpperCase();
+                            socket.emit('outOfGuesses', {roomcode: roomcode, username: username});
                         }
                     } else {
                         for (var i = 0; i < 5; i++) {
@@ -251,7 +280,7 @@
                     }
                 }
             }
-            function nextRoundSequence() {
+            function nextRoundSequence(won) {
                 setTimeout(function() {
                     document.getElementById("nextround").innerHTML = "Next round starting in 4...";
                 setTimeout(function() {
@@ -261,7 +290,7 @@
                 setTimeout(function() {
                     document.getElementById("nextround").innerHTML = "Next round starting in 1...";
                 setTimeout(function() {
-                    socket.emit('requestNewAnswer', {roomcode: roomcode});
+                    if (won) socket.emit('requestNewAnswer', {roomcode: roomcode, username:username});
                     for (var i = 0; i < 6; i++) {
                         for (var j = 0; j < 5; j++) {
                             table.rows[i].cells[j].innerHTML = "";
@@ -331,9 +360,16 @@
                 }
                 socket.emit('sendColorsToServer', {roomcode: roomcode, username: username, colors: colors, row: row});
             }
+            function backToMenu() {
+                socket.emit('leaveRoom', {roomcode: roomcode, username: username});
+                location.href = '/';
+            }
         </script>
     </head>
     <body>
+        <div id="homescreencontainer">
+            <button id="homescreen" onclick="backToMenu()">Leave Room</button>
+        </div>
         <div id="title">Wordle</div>
         <div id="line"></div>
         <div id="score">0 - 0</div>

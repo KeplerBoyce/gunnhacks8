@@ -138,10 +138,28 @@ io.on('connection', function(socket) {
         if (rooms[data.roomcode].usernames.indexOf(data.username) === 0) socket.broadcast.emit('updateScores', {username: data.username, roomcode: data.roomcode, leftscore: rooms[data.roomcode].score1, rightscore: rooms[data.roomcode].score0});
         else socket.broadcast.emit('updateScores', {username: data.username, roomcode: data.roomcode, leftscore: rooms[data.roomcode].score0, rightscore: rooms[data.roomcode].score1});
     });
-    socket.on('requestNewAnswer' function(data) {
+    socket.on('requestNewAnswer', function(data) {
         var answer = answerList[Math.floor(Math.random()*answerList.length)];
         rooms[data.roomcode].answer = answer;
-        socket.broadcast.emit('newAnswer', {roomcode: data.roomcode, answer: answer});
+        io.emit('newAnswer', {roomcode: data.roomcode, answer: answer});
+    });
+    socket.on('outOfGuesses', function(data) {
+        var usernames = rooms[data.roomcode].usernames;
+        var opponentName;
+        if (usernames[0] === data.username) opponentName = usernames[1];
+        else opponentName = usernames[0];
+        socket.broadcast.emit('noGuesses', {roomcode: data.roomcode, opponentName: opponentName});
+    });
+    socket.on('leaveRoom', function(data) {
+        var usernames = rooms[data.roomcode].usernames;
+        if (usernames[0] === data.username) {
+            rooms[data.roomcode].usernames.remove(0);
+            rooms[data.roomcode].userIds.remove(0);
+        } else {
+            rooms[data.roomcode].usernames.remove(1);
+            rooms[data.roomcode].userIds.remove(1);
+        }
+        if (rooms[data.roomcode].userIds.length === 0) delete rooms[data.roomcode];
     });
     socket.on('disconnect', function() {
         console.log("a user disconnected");
