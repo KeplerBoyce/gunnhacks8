@@ -104,6 +104,16 @@ io.on('connection', function(socket) {
         socket.emit('opponentIdAndName', {idValue: opponentId, username: username});
         console.log('sent opponent id and name to ' + socket.id);
     });
+    socket.on('startOpponentGame', function(data) {
+        console.log('yo');
+        var usernames = rooms[data.roomcode].usernames;
+        var userIds = rooms[data.roomcode].userIds;
+        var id;
+        if (usernames[0] === data.username) id = userIds[0];
+        else id = userIds[1];
+        socket.emit('startGame', {idValue: id});
+        console.log('started game for ' + id);
+    });
     socket.on('win', function(data) {
         var userIds = rooms[data.roomcode].userIds;
         var opponentId;

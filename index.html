@@ -31,6 +31,10 @@
                 font-size: 18px;
                 color: #fff;
             }
+            button:hover {
+                filter: brightness(85%);
+                cursor: pointer;
+            }
             input {
                 margin-top: 5px;
                 padding: 6px 10px 5px;
@@ -40,9 +44,7 @@
             }
             input:hover { border: 1px solid #333; }
             #create { background-color: #53a7eb; }
-            #create:hover { background-color: #4189c4; }
             #join { background-color: #44b457; }
-            #join:hover { background-color: #329642; }
             #errortext { color: #ff0000; }
         </style>
         <script src="/socket.io/socket.io.js"></script>

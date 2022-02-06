@@ -30,7 +30,12 @@
                 border: none;
                 border-radius: 5px;
                 font-size: 18px;
-                color: #fff;
+                background-color: #ddd;
+                color: #aaa;
+            }
+            #start:hover {
+                filter: brightness(85%);
+                cursor: pointer;
             }
         </style>
         <script src="/socket.io/socket.io.js"></script>
@@ -38,6 +43,7 @@
             var socket = io();
             var roomcode = location.href.split("?")[1];
             var username = localStorage.getItem("username");
+            var opponentName;
             var id;
             var hasOpponent = false;
             window.onload = function() {
@@ -49,20 +55,31 @@
                 id = data.idValue;
             });
             socket.on('returnOpponentName', function(data) {
-                document.getElementById("wait").innerHTML = "Playing against " + data.opponentName;
-                document.getElementById('start').style["background-color"] = "#44b457";
-                hasOpponent = true;
+                opponentName = data.opponentName;
+                setWaitElement();
             });
             socket.on("opponentJoin", function(data) {
                 if (data.idValue === id) {
-                    document.getElementById("wait").innerHTML = "Playing against " + data.username;
-                    document.getElementById('start').style["background-color"] = "#44b457";
-                    hasOpponent = true;
+                    opponentName = data.username;
+                    setWaitElement();
                 }
             });
-            function play() {
+            socket.on('startGame', function(data) {
+                if (data.idValue === id) {
+                    play(false);
+                }
+            });
+            function setWaitElement() {
+                document.getElementById("wait").innerHTML = "Playing against " + opponentName;
+                document.getElementById('start').style["background-color"] = "#44b457";
+                document.getElementById('start').style["background-color"] = "#44b457";
+                document.getElementById('start').style.color = "#fff";
+                hasOpponent = true;
+            }
+            function play(first) {
                 if (hasOpponent) {
                     localStorage.setItem("username", username);
+                    if (first) socket.emit('startOpponentGame', {roomcode: roomcode, username: opponentName});
                     location.href = "game.html?" + roomcode;
                 }
             }
@@ -75,7 +92,7 @@
                 <div id="roomcode">Room code:</div>
                 <div id="send">Send the room code to a friend!</div>
                 <div id="wait">Waiting for an opponent to join...</div>
-                <button id="start" onclick="play()">Start Game</button>
+                <button id="start" onclick="play(true)">Start Game</button>
             </div>
         </div>
     </body>
