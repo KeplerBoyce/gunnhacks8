@@ -148,18 +148,24 @@ io.on('connection', function(socket) {
         var opponentName;
         if (usernames[0] === data.username) opponentName = usernames[1];
         else opponentName = usernames[0];
-        socket.broadcast.emit('noGuesses', {roomcode: data.roomcode, opponentName: opponentName});
+        socket.broadcast.emit('noGuesses', {roomcode: data.roomcode, username: data.username, opponentName: opponentName});
+    });
+    socket.on('tied', function(data) {
+        socket.broadcast.emit('tiedGame', {roomcode: data.roomcode, username: data.username});
     });
     socket.on('leaveRoom', function(data) {
         var usernames = rooms[data.roomcode].usernames;
+        var opponentName;
         if (usernames[0] === data.username) {
-            rooms[data.roomcode].usernames.remove(0);
-            rooms[data.roomcode].userIds.remove(0);
+            opponentName = usernames[1];
+            rooms[data.roomcode].usernames = usernames.splice(0, 1);
+            rooms[data.roomcode].userIds = usernames.splice(0, 1);
         } else {
-            rooms[data.roomcode].usernames.remove(1);
-            rooms[data.roomcode].userIds.remove(1);
+            opponentName = usernames[0];
+            rooms[data.roomcode].usernames = usernames.splice(1, 1);
+            rooms[data.roomcode].userIds = usernames.splice(1, 1);
         }
-        if (rooms[data.roomcode].userIds.length === 0) delete rooms[data.roomcode];
+        socket.broadcast.emit('userLeft', {roomcode: data.roomcode, username: data.username, opponentName: opponentName});
     });
     socket.on('disconnect', function() {
         console.log("a user disconnected");

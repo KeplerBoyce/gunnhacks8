@@ -162,7 +162,7 @@
             });
             socket.on('opponentWon', function(data) {
                 if (data.roomcode === roomcode && data.opponentName === username) {
-                    var grid = new Array(row + 1);
+                    var grid = new Array(row);
                     for (i = 0; i <= row; i++) {
                         var gridRow = new Array(5);
                         for (j = 0; j < 5; j++) {
@@ -176,7 +176,7 @@
                     document.getElementById('resulttext').innerHTML = "The word was: " + answer.toUpperCase();
                     if (lostGame) document.getElementById('nextround').innerHTML = data.username + " won the game!";
                     else {
-                        document.getElementById('nextround').innerHTML = "Next round starting in a few seconds...";
+                        document.getElementById('nextround').innerHTML = "Next round starting in 5...";
                         nextRoundSequence(false);
                     }
                 }
@@ -205,8 +205,23 @@
             });
             socket.on('noGuesses', function(data) {
                 if (data.roomcode === roomcode && data.opponentName === username
-                    && row === 5 && lostGame) {
-                    //document.getElementById();
+                    && row > 5 && lostGame) {
+                    socket.emit('tied', {roomcode: roomcode, username: data.username});
+                    document.getElementById("resulttext").innerHTML = "Tied round; the word was: " + answer;
+                    document.getElementById("nextround").innerHTML = "Next round starting in 5...";
+                    nextRoundSequence(false);
+                }
+            });
+            socket.on('tiedGame', function(data) {
+                if (data.roomcode === roomcode && data.username === username) {
+                    document.getElementById("resulttext").innerHTML = "Tied round; the word was: " + answer;
+                    document.getElementById("nextround").innerHTML = "Next round starting in 5...";
+                    nextRoundSequence(false);
+                }
+            });
+            socket.on('userLeft', function(data) {
+                if (data.roomcode === roomcode && data.opponentName === username) {
+                    document.getElementById('resulttext').innerHTML = "User " + data.username + " left the room";
                 }
             });
             function initGrids() {
@@ -249,7 +264,7 @@
                     if (guessList.indexOf(guess) > -1) {
                         guessWord(guess);
                         if (guess === answer) {
-                            var grid = new Array(row + 1);
+                            var grid = new Array(row);
                             for (i = 0; i <= row; i++) {
                                 var gridRow = new Array(5);
                                 for (j = 0; j < 5; j++) {
@@ -268,7 +283,10 @@
                                 nextRoundSequence(true);
                             }
                         }
-                        if (row === 5 && guess !== answer) {
+                        row++;
+                        col = 0;
+                        if (row > 5 && guess !== answer) {
+                            canType = false;
                             lostGame = true;
                             document.getElementById('resulttext').innerHTML = "The word was: " + answer.toUpperCase();
                             socket.emit('outOfGuesses', {roomcode: roomcode, username: username});
