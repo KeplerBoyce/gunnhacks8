@@ -60,8 +60,7 @@
             }
             socket.on('joinRoom', function(data) {
                 localStorage.setItem("username", data.username);
-                localStorage.setItem("roomcode", data.roomcode);
-                location.href = 'lobby.html';
+                location.href = 'lobby.html?' + data.roomcode;
             });
             socket.on('roomCodeTaken', function(data) {
                 document.getElementById('errortext').innerHTML = 'Room code "' + data + '" is already in use!';
@@ -84,8 +83,8 @@
                 <input type="text" id="username" maxlength=20 placeholder="Your name..."><br>
                 <input type="text" id="roomcode" maxlength=20 placeholder="Room code..."><br>
                 <div id="buttons">
-                    <button id="create" onclick="create()">Create room</button>
-                    <button id="join" onclick="join()">Join room</button>
+                    <button id="create" onclick="create()">Create Room</button>
+                    <button id="join" onclick="join()">Join Room</button>
                 </div>
                 <span id="errortext"></span>
             </div>

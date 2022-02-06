@@ -19,6 +19,18 @@
             .container { display: flex; align-items: center; padding: 10px; }
             #player { grid-area: p; justify-content: center; }
             #opponent { grid-area: o; justify-content: left; }
+            #opponentinner { 
+                display: grid;
+                grid-template-areas:
+                    "a"
+                    "b";
+            }
+            #opponentname {
+                grid-area: a;
+                display: flex;
+                justify-content: center;
+                margin-bottom: 5px;
+            }
             #keyboard { grid-area: b; justify-content: center; }
             .playerth {
                 width: 60px;
@@ -34,7 +46,7 @@
                 border: 2px solid #ccc;
             }
             #gametable { border-spacing: 5px; }
-            #opponenttable { border-spacing: 2px; }
+            #opponenttable { grid-area: b; border-spacing: 2px; }
             #keyboardgrid {
                 display: grid;
                 grid-template-areas:
@@ -54,7 +66,7 @@
                 font-weight: 600;
             }
             .keyboardrow > button:hover {
-                background-color: #bbb;
+                filter: brightness(85%);
                 cursor: pointer;
             }
             .smallbutton { width: 43px; height: 58px; }
@@ -63,30 +75,36 @@
         <script src="/socket.io/socket.io.js"></script>
         <script>
             var socket = io();
+            var roomcode = location.href.split("?")[1];
+            var username = localStorage.getItem("username");
             var answerList = [], guessList = [];
             var row = 0, col = 0;
-            var opponentId;
+            var opponentId, opponentName;
             var table, opponentTable;
             var answer, numEach;
             var alph = "abcdefghijklmnopqrstuvwxyz";
+            var won = false;
             window.onload = function() {
                 table = document.getElementById('gametable');
                 opponentTable = document.getElementById('opponenttable');
                 initGrids();
-                socket.emit('requestAnswersAndGuesses');
-                socket.emit('requestOpponentId', {roomcode: localStorage.getItem("roomcode")});
+                socket.emit('requestAnswersAndGuesses', {roomcode: roomcode});
+                socket.emit('requestOpponentIdAndName', {roomcode: roomcode, username: username});
             }
             socket.on('answersAndGuesses', function(data) {
                 answerList = data.answers;
                 guessList = data.guesses;
-                answer = answerList[Math.floor(Math.random()*answerList.length)];
+                answer = data.answer;
                 numEach = new Array(26).fill(0);
                 for (var i = 0; i < 5; i++) {
                     numEach[alph.indexOf(answer.charAt(i))]++;
                 }
+                console.log(answer);
             });
-            socket.on('opponentId', function(data) {
+            socket.on('opponentIdAndName', function(data) {
                 opponentId = data.idValue;
+                opponentName = data.username;
+                document.getElementById("opponentname").innerHTML = opponentName;
             });
             socket.on('sendColorsToClient', function(data) {
                 if (data.idValue === opponentId) {
@@ -99,6 +117,11 @@
                         }
                         opponentTable.rows[data.row].cells[i].style["background-color"] = color;
                     }
+                }
+            });
+            socket.on('opponentWon', function(data) {
+                if (data.idValue === opponentId) {
+                    console.log("lost");
                 }
             });
             function initGrids() {
@@ -118,7 +141,7 @@
                 }
             }
             function typeKey(letter) {
-                if (col < 5) {
+                if (col < 5 && !won) {
                     table.rows[row].cells[col].innerHTML = letter;
                     col++;
                 }
@@ -137,15 +160,14 @@
                     }
                     if (guessList.indexOf(guess) > -1) {
                         guessWord(guess);
+                        if (guess === answer) {
+                            socket.emit('win', {roomcode: roomcode});
+                            won = true;
+                        }
                         row++;
                         col = 0;
-                        if (row === 6) {
-                            if (guess === word) {
-                                //solved
-                            }
-                            else {
-                                //ran out of guesses
-                            }
+                        if (row === 6 && guess !== answer) {
+                            //ran out of guesses
                         }
                     } else {
                         //invalid guess
@@ -163,19 +185,25 @@
                     }
                 }
                 for (var i = 0; i < 5; i++) {
+                    var keyElem = document.getElementById(guess.charAt(i));
                     if (green[i]) {
                         table.rows[row].cells[i].style["background-color"] = "#71ab67";
                         colors[i] = 2;
+                        keyElem.style["background-color"] = "#71ab67";
                     } else if (yellow[alph.indexOf(guess.charAt(i))] > 0) {
                         table.rows[row].cells[i].style["background-color"] = "#c4b44b";
                         yellow[alph.indexOf(guess.charAt(i))]--;
                         colors[i] = 1;
+                        if (keyElem.style["background-color"] !== "#71ab67") {
+                            keyElem.style["background-color"] = "#c4b44b"
+                        }
                     } else {
                         table.rows[row].cells[i].style["background-color"] = "#828282";
+                        keyElem.style["background-color"] = "#828282"
                     }
                     table.rows[row].cells[i].style.color = "#fff";
                 }
-                socket.emit('sendColorsToServer', {roomcode: localStorage.getItem("roomcode"), colors: colors, row: row});
+                socket.emit('sendColorsToServer', {roomcode: roomcode, colors: colors, row: row});
             }
         </script>
     </head>
@@ -184,7 +212,10 @@
             <table id="gametable"></table>
         </div>
         <div class="container" id="opponent">
-            <table id="opponenttable"></table>
+            <div class="container" id="opponentinner">
+                <div id="opponentname"></div>
+                <table id="opponenttable"></table>
+            </div>
         </div>
         <div class="container" id="keyboard">
             <div id="keyboardgrid">

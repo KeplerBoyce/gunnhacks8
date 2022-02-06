@@ -14,24 +14,68 @@
                 display: flex;
             }
             #inner {
-                width: min-content;
+                width: 20%;
                 margin: auto;
                 padding: 40px 40px 20px;
                 text-align: center;
                 vertical-align: middle;
                 border-radius: 25px;
             }
+            #title { font-size: 60px; margin-bottom: 20px; }
+            #roomcode { font-size: 30px; margin-bottom: 10px; }
+            #send { font-size: 18px; margin-bottom: 30px; }
+            #wait { font-size: 18px; margin-bottom: 10px; }
+            #start {
+                padding: 6px 10px 5px;
+                border: none;
+                border-radius: 5px;
+                font-size: 18px;
+                color: #fff;
+            }
         </style>
         <script src="/socket.io/socket.io.js"></script>
         <script>
             var socket = io();
+            var roomcode = location.href.split("?")[1];
+            var username = localStorage.getItem("username");
+            var id;
+            var hasOpponent = false;
+            window.onload = function() {
+                document.getElementById("roomcode").innerHTML = "Room code: " + roomcode;
+                socket.emit('requestId', {roomcode: roomcode, username: username});
+                socket.emit('requestOpponentName', {roomcode, roomcode, username: username})
+            }
+            socket.on('returnId', function(data) {
+                id = data.idValue;
+            });
+            socket.on('returnOpponentName', function(data) {
+                document.getElementById("wait").innerHTML = "Playing against " + data.opponentName;
+                document.getElementById('start').style["background-color"] = "#44b457";
+                hasOpponent = true;
+            });
+            socket.on("opponentJoin", function(data) {
+                if (data.idValue === id) {
+                    document.getElementById("wait").innerHTML = "Playing against " + data.username;
+                    document.getElementById('start').style["background-color"] = "#44b457";
+                    hasOpponent = true;
+                }
+            });
+            function play() {
+                if (hasOpponent) {
+                    localStorage.setItem("username", username);
+                    location.href = "game.html?" + roomcode;
+                }
+            }
         </script>
     </head>
     <body>
-        Engineer Gaming
         <div id="outer">
             <div id="inner">
-                Waiting for an opponent to join...
+                <header id="title">Wordle</header>
+                <div id="roomcode">Room code:</div>
+                <div id="send">Send the room code to a friend!</div>
+                <div id="wait">Waiting for an opponent to join...</div>
+                <button id="start" onclick="play()">Start Game</button>
             </div>
         </div>
     </body>
