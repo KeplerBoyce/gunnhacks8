@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
-    <head>
-		<link href="https://fonts.googleapis.com/css2?family=Oxygen:wght@300;400&display=swap" rel="stylesheet">
+    <head><link href="https://fonts.googleapis.com/css2?family=Oxygen+Mono&family=Oxygen:wght@400;700&display=swap" rel="stylesheet">
         <style>
             html, body {
                 height: 100%;
@@ -25,6 +24,9 @@
                 width: 60px;
                 height: 60px;
                 border: 2px solid #ccc;
+                font-size: 30px;
+                font-weight: 700;
+                text-transform: uppercase;
             }
             .opponentth {
                 width: 25px;
@@ -51,18 +53,38 @@
                 background-color: #ddd;
                 font-weight: 600;
             }
+            .keyboardrow > button:hover {
+                background-color: #bbb;
+                cursor: pointer;
+            }
             .smallbutton { width: 43px; height: 58px; }
             .widebutton { width: 66px; height: 58px; }
         </style>
         <script src="/socket.io/socket.io.js"></script>
         <script>
             var socket = io();
+            var answerList = [], guessList = [];
+            var row = 0, col = 0;
+            var table, opponentTable;
+            var answer, numEach;
+            var alph = "abcdefghijklmnopqrstuvwxyz";
             window.onload = function() {
+                table = document.getElementById('gametable');
+                opponentTable = document.getElementById('opponenttable');
                 initGrids();
+                socket.emit('requestAnswersAndGuesses');
             }
+            socket.on('answersAndGuesses', function(data) {
+                answerList = data.answers;
+                guessList = data.guesses;
+                answer = answerList[Math.floor(Math.random()*answerList.length)];
+                numEach = new Array(26).fill(0);
+                for (var i = 0; i < 5; i++) {
+                    numEach[alph.indexOf(answer.charAt(i))]++;
+                }
+                console.log(answer);
+            });
             function initGrids() {
-                var table = document.getElementById('gametable');
-                var table2 = document.getElementById('opponenttable');
                 for (var row = 0; row < 6; row++) {
                     var rowElem = document.createElement('tr');
                     var rowElem2 = document.createElement('tr');
@@ -75,7 +97,59 @@
                         rowElem2.appendChild(boxElem2);
                     }
                     table.appendChild(rowElem);
-                    table2.appendChild(rowElem2);
+                    opponentTable.appendChild(rowElem2);
+                }
+            }
+            function typeKey(letter) {
+                if (col < 5) {
+                    table.rows[row].cells[col].innerHTML = letter;
+                    col++;
+                }
+            }
+            function backspace() {
+                if (col > 0) {
+                    col--;
+                    table.rows[row].cells[col].innerHTML = "";
+                }
+            }
+            function enter() {
+                if (col === 5) {
+                    var guess = "";
+                    for (var i = 0; i < 5; i++) {
+                        guess += table.rows[row].cells[i].innerHTML;
+                    }
+                    if (guessList.indexOf(guess) > -1) {
+                        guessWord(guess);
+                        row++;
+                        col = 0;
+                        if (row === 6) {
+                            if (guess === word) console.log("victory royale");
+                            else console.log("very fat yoshi");
+                        }
+                    } else {
+                        console.log("fat yoshi");
+                    }
+                }
+            }
+            function guessWord(guess) {
+                var yellow = numEach.slice();
+                var green = new Array(5).fill(false);
+                for (var i = 0; i < 5; i++) {
+                    if (answer.charAt(i) === guess.charAt(i)) {
+                        green[i] = true;
+                        yellow[alph.indexOf(guess.charAt(i))]--;
+                    }
+                }
+                for (var i = 0; i < 5; i++) {
+                    if (green[i]) {
+                        table.rows[row].cells[i].style["background-color"] = "#71ab67";
+                    } else if (yellow[alph.indexOf(guess.charAt(i))] > 0) {
+                        table.rows[row].cells[i].style["background-color"] = "#c4b44b";
+                        yellow[alph.indexOf(guess.charAt(i))]--;
+                    } else {
+                        table.rows[row].cells[i].style["background-color"] = "#828282";
+                    }
+                    table.rows[row].cells[i].style.color = "#fff";
                 }
             }
         </script>
@@ -90,38 +164,38 @@
         <div class="container" id="keyboard">
             <div id="keyboardgrid">
                 <div class="keyboardrow" id="toprow">
-                    <button class="smallbutton" id="q">Q</button>
-                    <button class="smallbutton" id="w">W</button>
-                    <button class="smallbutton" id="e">E</button>
-                    <button class="smallbutton" id="r">R</button>
-                    <button class="smallbutton" id="t">T</button>
-                    <button class="smallbutton" id="y">Y</button>
-                    <button class="smallbutton" id="u">U</button>
-                    <button class="smallbutton" id="i">I</button>
-                    <button class="smallbutton" id="o">O</button>
-                    <button class="smallbutton" id="p">P</button>
+                    <button class="smallbutton" id="q" onclick="typeKey('q')">Q</button>
+                    <button class="smallbutton" id="w" onclick="typeKey('w')">W</button>
+                    <button class="smallbutton" id="e" onclick="typeKey('e')">E</button>
+                    <button class="smallbutton" id="r" onclick="typeKey('r')">R</button>
+                    <button class="smallbutton" id="t" onclick="typeKey('t')">T</button>
+                    <button class="smallbutton" id="y" onclick="typeKey('y')">Y</button>
+                    <button class="smallbutton" id="u" onclick="typeKey('u')">U</button>
+                    <button class="smallbutton" id="i" onclick="typeKey('i')">I</button>
+                    <button class="smallbutton" id="o" onclick="typeKey('o')">O</button>
+                    <button class="smallbutton" id="p" onclick="typeKey('p')">P</button>
                 </div>
                 <div class="keyboardrow" id="middlerow">
-                    <button class="smallbutton" id="a">A</button>
-                    <button class="smallbutton" id="s">S</button>
-                    <button class="smallbutton" id="d">D</button>
-                    <button class="smallbutton" id="f">F</button>
-                    <button class="smallbutton" id="g">G</button>
-                    <button class="smallbutton" id="h">H</button>
-                    <button class="smallbutton" id="j">J</button>
-                    <button class="smallbutton" id="k">K</button>
-                    <button class="smallbutton" id="l">L</button>
+                    <button class="smallbutton" id="a" onclick="typeKey('a')">A</button>
+                    <button class="smallbutton" id="s" onclick="typeKey('s')">S</button>
+                    <button class="smallbutton" id="d" onclick="typeKey('d')">D</button>
+                    <button class="smallbutton" id="f" onclick="typeKey('f')">F</button>
+                    <button class="smallbutton" id="g" onclick="typeKey('g')">G</button>
+                    <button class="smallbutton" id="h" onclick="typeKey('h')">H</button>
+                    <button class="smallbutton" id="j" onclick="typeKey('j')">J</button>
+                    <button class="smallbutton" id="k" onclick="typeKey('k')">K</button>
+                    <button class="smallbutton" id="l" onclick="typeKey('l')">L</button>
                 </div>
                 <div class="keyboardrow" id="bottomrow">
-                    <button class="widebutton" id="enter">ENTER</button>
-                    <button class="smallbutton" id="z">Z</button>
-                    <button class="smallbutton" id="x">X</button>
-                    <button class="smallbutton" id="c">C</button>
-                    <button class="smallbutton" id="v">V</button>
-                    <button class="smallbutton" id="b">B</button>
-                    <button class="smallbutton" id="n">N</button>
-                    <button class="smallbutton" id="m">M</button>
-                    <button class="widebutton" id="backspace">⌫</button>
+                    <button class="widebutton" id="enter" onclick="enter()">ENTER</button>
+                    <button class="smallbutton" id="z" onclick="typeKey('z')">Z</button>
+                    <button class="smallbutton" id="x" onclick="typeKey('x')">X</button>
+                    <button class="smallbutton" id="c" onclick="typeKey('c')">C</button>
+                    <button class="smallbutton" id="v" onclick="typeKey('v')">V</button>
+                    <button class="smallbutton" id="b" onclick="typeKey('b')">B</button>
+                    <button class="smallbutton" id="n" onclick="typeKey('n')">N</button>
+                    <button class="smallbutton" id="m" onclick="typeKey('m')">M</button>
+                    <button class="widebutton" id="backspace" onclick="backspace()">⌫</button>
                 </div>
             </div>
         </div>

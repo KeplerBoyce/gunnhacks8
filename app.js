@@ -2,6 +2,13 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
+var fs = require('fs');
+var answerList = fs.readFileSync('wordleanswers.txt', 'utf8').split('\n');
+var guessList = fs.readFileSync('wordleguesses.txt', 'utf8').split('\n');
+answerList.forEach(word => {
+    guessList.push(word);
+});
+
 app.get('/', function(req, res) {
     res.sendFile(__dirname + '/index.html');
 });
@@ -22,10 +29,10 @@ io.on('connection', function(socket) {
             console.log(data.username + ' created room ' + data.roomcode);
         }
         console.log(rooms);
-    })
+    });
     socket.on('attemptJoin', function(data) {
         if (data.roomcode in rooms) {
-            if (rooms[data.roomcode].length == 2) {
+            if (rooms[data.roomcode].length === 2) {
                 socket.emit('roomFull', data.roomcode);
                 console.log('Cannot join; room ' + data.roomcode + ' is full');
             } else if (rooms[data.roomcode].indexOf(data.username) > -1) {
@@ -41,7 +48,10 @@ io.on('connection', function(socket) {
             console.log('room ' + data.roomcode + ' does not exist');
         }
         console.log(rooms);
-    })
+    });
+    socket.on('requestAnswersAndGuesses', function() {
+        socket.emit('answersAndGuesses', {answers: answerList, guesses: guessList});
+    });
     socket.on('disconnect', function() {
         console.log("a user disconnected");
     });
