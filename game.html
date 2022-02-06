@@ -14,10 +14,12 @@
                     "t t t"
                     "l l l"
                     "s s s"
+                    "r r r"
+                    "n n n"
                     "e p o"
                     "b b b";
                 grid-template-columns: auto 380px auto;
-                grid-template-rows: 8% 2px 7% 64% 20%;
+                grid-template-rows: 8% 2px 5% 3% 3% 60% 20%;
             }
             #title {
                 grid-area: t;
@@ -39,6 +41,20 @@
                 font-size: 30px;
                 margin-top: 10px;
             }
+            #resulttext {
+                grid-area: r;
+                display: flex;
+                justify-content: center;
+                font-size: 18px;
+                margin-top: 10px;
+            }
+            #nextround {
+                grid-area: n;
+                display: flex;
+                justify-content: center;
+                font-size: 18px;
+                margin-top: 10px;
+            }
             .container { display: flex; align-items: center; padding: 10px; }
             #player { grid-area: p; justify-content: center; }
             #opponent { grid-area: o; justify-content: left; }
@@ -55,6 +71,10 @@
                 width: 25px;
                 height: 25px;
                 border: 2px solid #c0c0c5;
+                color: #fff;
+                font-size: 18px;
+                font-weight: 700;
+                text-transform: uppercase;
             }
             #gametable { border-spacing: 5px; }
             #opponenttable { border-spacing: 2px; }
@@ -90,17 +110,16 @@
             var username = location.href.split("?")[1].split("#")[1];
             var answerList = [], guessList = [];
             var row = 0, col = 0;
-            var opponentId, opponentName;console.log(username);
             var table, opponentTable;
             var answer, numEach;
             var alph = "abcdefghijklmnopqrstuvwxyz";
-            var won = false;
+            var canType = true, wonGame = false, lostGame = false;
             window.onload = function() {
                 table = document.getElementById('gametable');
                 opponentTable = document.getElementById('opponenttable');
                 initGrids();
                 socket.emit('requestAnswersAndGuesses', {roomcode: roomcode});
-                socket.emit('requestOpponentIdAndName', {roomcode: roomcode, username: username});
+                socket.emit('requestScores', {roomcode: roomcode, username: username});
             }
             socket.on('answersAndGuesses', function(data) {
                 answerList = data.answers;
@@ -112,13 +131,8 @@
                 }
                 console.log(answer);
             });
-            socket.on('opponentIdAndName', function(data) {
-                opponentId = data.idValue;
-                opponentName = data.username;
-            });
             socket.on('sendColorsToClient', function(data) {
-                console.log("coloring things");
-                if (data.idValue === opponentId) {
+                if (roomcode === data.roomcode && data.opponentName === username) {
                     for (var i = 0; i < 5; i++) {
                         var color = "#fff";
                         switch (data.colors[i]) {
@@ -131,15 +145,42 @@
                 }
             });
             socket.on('opponentWon', function(data) {
-                if (data.idValue === opponentId) {
+                if (data.roomcode === roomcode && data.opponentName === username) {
                     socket.emit('requestScores', {roomcode: roomcode, username: username});
-                    console.log("lost");
+                    canType = false;
+                    document.getElementById('resulttext').innerHTML = "The word was: " + answer.toUpperCase();
+                    if (lostGame) document.getElementById('nextround').innerHTML = data.username + " won the game!";
+                    else document.getElementById('nextround').innerHTML = "Next round starting in a few seconds...";
+                    var grid = new Array(row + 1);
+                    for (i = 0; i <= row; i++) {
+                        var gridRow = new Array(5);
+                        for (j = 0; j < 5; j++) {
+                            gridRow[j] = table.rows[i].cells[j].innerHTML;
+                        }
+                        grid[i] = gridRow;
+                    }
+                    socket.emit('fillOpponentGrid', {roomcode: roomcode, username: username, grid: grid});
+                    if (!lostGame) nextRoundSequence();
+                }
+            });
+            socket.on('transferGrid', function(data) {
+                if (data.roomcode === roomcode && data.opponentName === username) {
+                    for (var i = 0; i < data.grid.length; i++) {
+                        for (var j = 0; j < 5; j++) {
+                            opponentTable.rows[i].cells[j].innerHTML = data.grid[i][j];
+                        }
+                    }
                 }
             });
             socket.on('updateScores', function(data) {
                 if (data.roomcode == roomcode) {
                     document.getElementById("score").innerHTML = data.leftscore + " - " + data.rightscore;
+                    if (data.leftscore === 4) wonGame = true;
+                    if (data.rightscore === 4) lostGame = true;
                 }
+            });
+            socket.on('newAnswer', function(data) {
+                if (data.roomcode === roomcode) answer = data.answer;
             });
             function initGrids() {
                 for (var row = 0; row < 6; row++) {
@@ -158,13 +199,13 @@
                 }
             }
             function typeKey(letter) {
-                if (col < 5 && !won) {
+                if (col < 5 && canType) {
                     table.rows[row].cells[col].innerHTML = letter;
                     col++;
                 }
             }
             function backspace() {
-                if (col > 0) {
+                if (col > 0 && canType) {
                     col--;
                     table.rows[row].cells[col].innerHTML = "";
                     for (var i = 0; i < 5; i++) {
@@ -173,7 +214,7 @@
                 }
             }
             function enter() {
-                if (col === 5) {
+                if (col === 5 && canType) {
                     var guess = "";
                     for (var i = 0; i < 5; i++) {
                         guess += table.rows[row].cells[i].innerHTML;
@@ -181,9 +222,22 @@
                     if (guessList.indexOf(guess) > -1) {
                         guessWord(guess);
                         if (guess === answer) {
+                            var grid = new Array(row + 1);
+                            for (i = 0; i <= row; i++) {
+                                var gridRow = new Array(5);
+                                for (j = 0; j < 5; j++) {
+                                    gridRow[j] = table.rows[i].cells[j].innerHTML;
+                                }
+                                grid[i] = gridRow;
+                            }
+                            socket.emit('fillOpponentGrid', {roomcode: roomcode, username: username, grid: grid});
                             socket.emit('win', {roomcode: roomcode, username: username});
                             socket.emit('requestScores', {roomcode: roomcode, username: username});
-                            won = true;
+                            canType = false;
+                            document.getElementById("resulttext").innerHTML = "You found the word!";
+                            if (wonGame) document.getElementById('nextround').innerHTML = username + " won the game!";
+                            else document.getElementById('nextround').innerHTML = "Next round starting in 5...";
+                            if (!wonGame) nextRoundSequence();
                         }
                         row++;
                         col = 0;
@@ -196,6 +250,49 @@
                         }
                     }
                 }
+            }
+            function nextRoundSequence() {
+                setTimeout(function() {
+                    document.getElementById("nextround").innerHTML = "Next round starting in 4...";
+                setTimeout(function() {
+                    document.getElementById("nextround").innerHTML = "Next round starting in 3...";
+                setTimeout(function() {
+                    document.getElementById("nextround").innerHTML = "Next round starting in 2...";
+                setTimeout(function() {
+                    document.getElementById("nextround").innerHTML = "Next round starting in 1...";
+                setTimeout(function() {
+                    socket.emit('requestNewAnswer', {roomcode: roomcode});
+                    for (var i = 0; i < 6; i++) {
+                        for (var j = 0; j < 5; j++) {
+                            table.rows[i].cells[j].innerHTML = "";
+                            table.rows[i].cells[j].style.color = "#000";
+                            table.rows[i].cells[j].style["background-color"] = "#fff";
+                            opponentTable.rows[i].cells[j].innerHTML = "";
+                            opponentTable.rows[i].cells[j].style["background-color"] = "#fff";
+                        }
+                    }
+                    row = 0;
+                    col = 0;
+                    var smallKeys = document.getElementsByClassName("smallbutton");
+                    var smallKeyArr = [...smallKeys];
+                    smallKeyArr.forEach(el => {
+                        el.style["background-color"] = "#d0d0d5";
+                        el.style.color = "#000";
+                    });
+                    var wideKeys = document.getElementsByClassName("widebutton");
+                    var wideKeyArr = [...wideKeys];
+                    wideKeyArr.forEach(el => {
+                        el.style["background-color"] = "#d0d0d5";
+                        el.style.color = "#000";
+                    });
+                    document.getElementById("resulttext").innerHTML = "";
+                    document.getElementById("nextround").innerHTML = "";
+                    canType = true;
+                }, 1000);
+                }, 1000);
+                }, 1000);
+                }, 1000);
+                }, 1000);
             }
             function guessWord(guess) {
                 var yellow = numEach.slice();
@@ -232,7 +329,7 @@
                     }
                     table.rows[row].cells[i].style.color = "#fff";
                 }
-                socket.emit('sendColorsToServer', {roomcode: roomcode, colors: colors, row: row});
+                socket.emit('sendColorsToServer', {roomcode: roomcode, username: username, colors: colors, row: row});
             }
         </script>
     </head>
@@ -240,6 +337,8 @@
         <div id="title">Wordle</div>
         <div id="line"></div>
         <div id="score">0 - 0</div>
+        <div id="resulttext"></div>
+        <div id="nextround"></div>
         <div class="container" id="player">
             <table id="gametable"></table>
         </div>

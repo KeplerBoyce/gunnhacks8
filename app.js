@@ -83,17 +83,16 @@ io.on('connection', function(socket) {
     });
     socket.on('sendColorsToServer', function(data) {
         var usernames = rooms[data.roomcode].usernames;
-        var userIds = rooms[data.roomcode].userIds;
-        var opponentId;
-        if (usernames[0] === data.username) opponentId = userIds[1];
-        else opponentId = userIds[0];
-        socket.broadcast.emit('sendColorsToClient', {idValue: opponentId, colors: data.colors, row: data.row});
-        console.log('sent colors to session id ' + opponentId);
+        var opponentName;
+        if (usernames[0] === data.username) opponentName = usernames[1];
+        else opponentName = usernames[0];
+        socket.broadcast.emit('sendColorsToClient', {roomcode: data.roomcode, opponentName: opponentName, colors: data.colors, row: data.row});
+        console.log('sent colors to user ' + opponentName);
     });
     socket.on("requestOpponentIdAndName", function(data) {
         var usernames = rooms[data.roomcode].usernames;
         var userIds = rooms[data.roomcode].userIds;
-        var opponentId, username;
+        var opponentId, opponentName;
         if (usernames[0] === data.username) {
             opponentId = userIds[1];
             username = rooms[data.roomcode].usernames[1];
@@ -101,7 +100,7 @@ io.on('connection', function(socket) {
             opponentId = userIds[0];
             username = rooms[data.roomcode].usernames[0];
         }
-        socket.emit('opponentIdAndName', {idValue: opponentId, username: username});
+        socket.emit('opponentIdAndName', {idValue: opponentId, username: opponentName});
         console.log('sent opponent id and name to ' + socket.id);
     });
     socket.on('startOpponentGame', function(data) {
@@ -114,23 +113,35 @@ io.on('connection', function(socket) {
         console.log('started game for ' + id);
     });
     socket.on('win', function(data) {
-        var userIds = rooms[data.roomcode].userIds;
         var usernames = rooms[data.roomcode].usernames;
-        var opponentId;
+        var opponentName;
         if (usernames[0] === data.username) {
             rooms[data.roomcode].score0++;
-            opponentId = userIds[1];
+            opponentName = usernames[1];
         } else {
             rooms[data.roomcode].score1++;
-            opponentId = userIds[0];
+            opponentName = usernames[0];
         }
-        socket.broadcast.emit('opponentWon', {idValue: opponentId});
+        if (rooms[data.roomcode].usernames.indexOf(data.username) === 0) socket.broadcast.emit('updateScores', {roomcode: data.roomcode, leftscore: rooms[data.roomcode].score1, rightscore: rooms[data.roomcode].score0});
+        else socket.broadcast.emit('updateScores', {username: data.username, roomcode: data.roomcode, leftscore: rooms[data.roomcode].score0, rightscore: rooms[data.roomcode].score1});
+        socket.broadcast.emit('opponentWon', {username: data.username, opponentName: opponentName, roomcode: data.roomcode});
         console.log('player ' + socket.id + ' won the round');
     });
+    socket.on('fillOpponentGrid', function(data) {
+        var usernames = rooms[data.roomcode].usernames;
+        var opponentName;
+        if (usernames[0] === data.username) opponentName = usernames[1];
+        else opponentName = usernames[0];
+        socket.broadcast.emit('transferGrid', {roomcode: data.roomcode, opponentName: opponentName, grid: data.grid});
+    });
     socket.on('requestScores', function(data) {
-        console.log(data.username);
-        if (rooms[data.roomcode].usernames.indexOf(data.username) == 0) socket.broadcast.emit('updateScores', {roomcode: data.roomcode, leftscore: rooms[data.roomcode].score1, rightscore: rooms[data.roomcode].score0});
-        else socket.broadcast.emit('updateScores', {roomcode: data.roomcode, leftscore: rooms[data.roomcode].score0, rightscore: rooms[data.roomcode].score1});
+        if (rooms[data.roomcode].usernames.indexOf(data.username) === 0) socket.broadcast.emit('updateScores', {username: data.username, roomcode: data.roomcode, leftscore: rooms[data.roomcode].score1, rightscore: rooms[data.roomcode].score0});
+        else socket.broadcast.emit('updateScores', {username: data.username, roomcode: data.roomcode, leftscore: rooms[data.roomcode].score0, rightscore: rooms[data.roomcode].score1});
+    });
+    socket.on('requestNewAnswer' function(data) {
+        var answer = answerList[Math.floor(Math.random()*answerList.length)];
+        rooms[data.roomcode].answer = answer;
+        socket.broadcast.emit('newAnswer', {roomcode: data.roomcode, answer: answer});
     });
     socket.on('disconnect', function() {
         console.log("a user disconnected");
