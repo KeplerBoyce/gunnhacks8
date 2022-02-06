@@ -2,13 +2,128 @@
 <html>
     <head>
 		<link href="https://fonts.googleapis.com/css2?family=Oxygen:wght@300;400&display=swap" rel="stylesheet">
-        <style></style>
+        <style>
+            html, body {
+                height: 100%;
+                margin: 0;
+                background-color: #fff;
+                font-family: oxygen;
+            }
+            body {
+                display: grid;
+                grid-template-areas:
+                    "e p o"
+                    "b b b";
+                grid-template-columns: auto 380px auto;
+                grid-template-rows: 79% 20%;
+            }
+            .container { display: flex; align-items: center; padding: 10px; }
+            #player { grid-area: p; justify-content: center; }
+            #opponent { grid-area: o; justify-content: left; }
+            #keyboard { grid-area: b; justify-content: center; }
+            .playerth {
+                width: 60px;
+                height: 60px;
+                border: 2px solid #ccc;
+            }
+            .opponentth {
+                width: 25px;
+                height: 25px;
+                border: 2px solid #ccc;
+            }
+            #gametable { border-spacing: 5px; }
+            #opponenttable { border-spacing: 2px; }
+            #keyboardgrid {
+                display: grid;
+                grid-template-areas:
+                    "t"
+                    "m"
+                    "b";
+            }
+            .keyboardrow { display: flex; justify-content: center; }
+            #toprow { grid-area: t; }
+            #middlerow { grid-area: m; }
+            #bottomrow { grid-area: b; }
+            .keyboardrow > button {
+                margin: 3px;
+                border: none;
+                border-radius: 5px;
+                background-color: #ddd;
+                font-weight: 600;
+            }
+            .smallbutton { width: 43px; height: 58px; }
+            .widebutton { width: 66px; height: 58px; }
+        </style>
         <script src="/socket.io/socket.io.js"></script>
         <script>
             var socket = io();
+            window.onload = function() {
+                initGrids();
+            }
+            function initGrids() {
+                var table = document.getElementById('gametable');
+                var table2 = document.getElementById('opponenttable');
+                for (var row = 0; row < 6; row++) {
+                    var rowElem = document.createElement('tr');
+                    var rowElem2 = document.createElement('tr');
+                    for (var col = 0; col < 5; col++) {
+                        var boxElem = document.createElement('th');
+                        var boxElem2 = document.createElement('th');
+                        boxElem.setAttribute("class", "playerth");
+                        boxElem2.setAttribute("class", "opponentth");
+                        rowElem.appendChild(boxElem);
+                        rowElem2.appendChild(boxElem2);
+                    }
+                    table.appendChild(rowElem);
+                    table2.appendChild(rowElem2);
+                }
+            }
         </script>
     </head>
     <body>
-        Engineer Gaming
+        <div class="container" id="player">
+            <table id="gametable"></table>
+        </div>
+        <div class="container" id="opponent">
+            <table id="opponenttable"></table>
+        </div>
+        <div class="container" id="keyboard">
+            <div id="keyboardgrid">
+                <div class="keyboardrow" id="toprow">
+                    <button class="smallbutton" id="q">Q</button>
+                    <button class="smallbutton" id="w">W</button>
+                    <button class="smallbutton" id="e">E</button>
+                    <button class="smallbutton" id="r">R</button>
+                    <button class="smallbutton" id="t">T</button>
+                    <button class="smallbutton" id="y">Y</button>
+                    <button class="smallbutton" id="u">U</button>
+                    <button class="smallbutton" id="i">I</button>
+                    <button class="smallbutton" id="o">O</button>
+                    <button class="smallbutton" id="p">P</button>
+                </div>
+                <div class="keyboardrow" id="middlerow">
+                    <button class="smallbutton" id="a">A</button>
+                    <button class="smallbutton" id="s">S</button>
+                    <button class="smallbutton" id="d">D</button>
+                    <button class="smallbutton" id="f">F</button>
+                    <button class="smallbutton" id="g">G</button>
+                    <button class="smallbutton" id="h">H</button>
+                    <button class="smallbutton" id="j">J</button>
+                    <button class="smallbutton" id="k">K</button>
+                    <button class="smallbutton" id="l">L</button>
+                </div>
+                <div class="keyboardrow" id="bottomrow">
+                    <button class="widebutton" id="enter">ENTER</button>
+                    <button class="smallbutton" id="z">Z</button>
+                    <button class="smallbutton" id="x">X</button>
+                    <button class="smallbutton" id="c">C</button>
+                    <button class="smallbutton" id="v">V</button>
+                    <button class="smallbutton" id="b">B</button>
+                    <button class="smallbutton" id="n">N</button>
+                    <button class="smallbutton" id="m">M</button>
+                    <button class="widebutton" id="backspace">⌫</button>
+                </div>
+            </div>
+        </div>
     </body>
 </html>

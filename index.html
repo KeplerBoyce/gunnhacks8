@@ -6,37 +6,37 @@
             html, body {
                 height: 100%;
                 margin: 0;
-                background-color: #ddd;
+                background-color: #fff;
                 font-family: oxygen;
             }
-            .container {
+            #outer {
                 height: 70%;
                 align-items: center;
                 display: flex;
             }
-            .container > div {
+            #inner {
                 width: min-content;
                 margin: auto;
                 padding: 40px 40px 20px;
                 text-align: center;
                 vertical-align: middle;
                 border-radius: 25px;
-                background-color: #fff;
             }
-            #title { font-size: 48px; margin-bottom: 30px; }
+            #title { font-size: 60px; margin-bottom: 30px; }
             #buttons { margin: 10px 5px 10px; }
             button {
-                padding: 4px 8px;
+                padding: 6px 10px 5px;
                 border: none;
                 border-radius: 5px;
+                font-size: 18px;
                 color: #fff;
-                font-weight: 600;
             }
             input {
                 margin-top: 5px;
-                padding: 4px 8px;
+                padding: 6px 10px 5px;
                 border: 1px solid #777;
                 border-radius: 5px;
+                font-size: 18px;
             }
             input:hover { border: 1px solid #333; }
             #create { background-color: #53a7eb; }
@@ -59,22 +59,25 @@
                 socket.emit('attemptJoin', {username: user, roomcode: code});
             }
             socket.on('joinRoom', function(data) {
-                location.href = './game.html';
+                location.href = 'game.html';
             });
             socket.on('roomCodeTaken', function(data) {
                 document.getElementById('errortext').innerHTML = 'Room code "' + data + '" is already in use!';
             });
-            socket.on('invalidCode', function(data) {
-                document.getElementById('errortext').innerHTML = 'No room with code "' + data + '"!';
+            socket.on('roomFull', function(data) {
+                document.getElementById('errortext').innerHTML = 'Room is full!';
             });
             socket.on('userAlreadyInRoom', function(data) {
                 document.getElementById('errortext').innerHTML = 'Already a user "' + data.username + '" in room!';
             });
+            socket.on('invalidCode', function(data) {
+                document.getElementById('errortext').innerHTML = 'No room with code "' + data + '"!';
+            });
         </script>
     </head>
     <body>
-        <div class="container">
-            <div>
+        <div id="outer">
+            <div id="inner">
                 <header id="title">Wordle</header>
                 <input type="text" id="username" maxlength=20 placeholder="Your name..."><br>
                 <input type="text" id="roomcode" maxlength=20 placeholder="Room code..."><br>
