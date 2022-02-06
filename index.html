@@ -23,6 +23,7 @@
                 border-radius: 25px;
             }
             #title { font-size: 60px; margin-bottom: 30px; }
+            #text { font-size: 16px; font-style: italic; margin-bottom: 20px; }
             #buttons { margin: 10px 5px 10px; }
             button {
                 padding: 6px 10px 5px;
@@ -45,7 +46,7 @@
             input:hover { border: 1px solid #333; }
             #create { background-color: #53a7eb; }
             #join { background-color: #44b457; }
-            #errortext { color: #ff0000; }
+            #errortext { color: #ff0000; font-style: italic; }
         </style>
         <script src="/socket.io/socket.io.js"></script>
         <script>
@@ -80,7 +81,8 @@
     <body>
         <div id="outer">
             <div id="inner">
-                <header id="title">Wordle</header>
+                <header id="title">kwordle</header>
+                <div id="text">1v1 online wordle; first to solve 5 puzzles wins</div>
                 <input type="text" id="username" maxlength=20 placeholder="Your name..."><br>
                 <input type="text" id="roomcode" maxlength=20 placeholder="Room code..."><br>
                 <div id="buttons">

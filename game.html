@@ -221,7 +221,16 @@
             });
             socket.on('userLeft', function(data) {
                 if (data.roomcode === roomcode && data.opponentName === username) {
-                    document.getElementById('resulttext').innerHTML = "User " + data.username + " left the room";
+                    document.getElementById('resulttext').innerHTML = data.username + " left the room. Returning to menu in 3...";
+                    setTimeout(function() {
+                        document.getElementById('resulttext').innerHTML = data.username + " left the room. Returning to menu in 2...";
+                    setTimeout(function() {
+                        document.getElementById('resulttext').innerHTML = data.username + " left the room. Returning to menu in 1...";
+                    setTimeout(function() {
+                        backToMenu();
+                    }, 1000);
+                    }, 1000);
+                    }, 1000);
                 }
             });
             function initGrids() {
@@ -388,7 +397,7 @@
         <div id="homescreencontainer">
             <button id="homescreen" onclick="backToMenu()">Leave Room</button>
         </div>
-        <div id="title">Wordle</div>
+        <div id="title">kwordle</div>
         <div id="line"></div>
         <div id="score">0 - 0</div>
         <div id="resulttext"></div>

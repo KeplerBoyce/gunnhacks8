@@ -37,7 +37,6 @@
                 filter: brightness(85%);
                 cursor: pointer;
             }
-            #errortext { font-size: 16px; color: #f00; margin-top: 10px; }
         </style>
         <script src="/socket.io/socket.io.js"></script>
         <script>
@@ -88,12 +87,11 @@
     <body>
         <div id="outer">
             <div id="inner">
-                <header id="title">Wordle</header>
+                <header id="title">kwordle</header>
                 <div id="roomcode">Room code:</div>
                 <div id="send">Send the room code to a friend!</div>
                 <div id="wait">Waiting for an opponent to join...</div>
                 <button id="start" onclick="play(true)">Start Game</button>
-                <div id="errortext"></div>
             </div>
         </div>
     </body>
