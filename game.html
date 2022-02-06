@@ -65,6 +65,7 @@
             var socket = io();
             var answerList = [], guessList = [];
             var row = 0, col = 0;
+            var opponentId;
             var table, opponentTable;
             var answer, numEach;
             var alph = "abcdefghijklmnopqrstuvwxyz";
@@ -73,6 +74,7 @@
                 opponentTable = document.getElementById('opponenttable');
                 initGrids();
                 socket.emit('requestAnswersAndGuesses');
+                socket.emit('requestOpponentId', {roomcode: localStorage.getItem("roomcode")});
             }
             socket.on('answersAndGuesses', function(data) {
                 answerList = data.answers;
@@ -82,7 +84,22 @@
                 for (var i = 0; i < 5; i++) {
                     numEach[alph.indexOf(answer.charAt(i))]++;
                 }
-                console.log(answer);
+            });
+            socket.on('opponentId', function(data) {
+                opponentId = data.idValue;
+            });
+            socket.on('sendColorsToClient', function(data) {
+                if (data.idValue === opponentId) {
+                    for (var i = 0; i < 5; i++) {
+                        var color = "#fff";
+                        switch (data.colors[i]) {
+                            case 0: color = "#828282"; break;
+                            case 1: color = "#c4b44b"; break;
+                            case 2: color = "#71ab67"; break;
+                        }
+                        opponentTable.rows[data.row].cells[i].style["background-color"] = color;
+                    }
+                }
             });
             function initGrids() {
                 for (var row = 0; row < 6; row++) {
@@ -123,17 +140,22 @@
                         row++;
                         col = 0;
                         if (row === 6) {
-                            if (guess === word) console.log("victory royale");
-                            else console.log("very fat yoshi");
+                            if (guess === word) {
+                                //solved
+                            }
+                            else {
+                                //ran out of guesses
+                            }
                         }
                     } else {
-                        console.log("fat yoshi");
+                        //invalid guess
                     }
                 }
             }
             function guessWord(guess) {
                 var yellow = numEach.slice();
                 var green = new Array(5).fill(false);
+                var colors = [0, 0, 0, 0, 0];
                 for (var i = 0; i < 5; i++) {
                     if (answer.charAt(i) === guess.charAt(i)) {
                         green[i] = true;
@@ -143,14 +165,17 @@
                 for (var i = 0; i < 5; i++) {
                     if (green[i]) {
                         table.rows[row].cells[i].style["background-color"] = "#71ab67";
+                        colors[i] = 2;
                     } else if (yellow[alph.indexOf(guess.charAt(i))] > 0) {
                         table.rows[row].cells[i].style["background-color"] = "#c4b44b";
                         yellow[alph.indexOf(guess.charAt(i))]--;
+                        colors[i] = 1;
                     } else {
                         table.rows[row].cells[i].style["background-color"] = "#828282";
                     }
                     table.rows[row].cells[i].style.color = "#fff";
                 }
+                socket.emit('sendColorsToServer', {roomcode: localStorage.getItem("roomcode"), colors: colors, row: row});
             }
         </script>
     </head>

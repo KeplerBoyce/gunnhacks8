@@ -59,7 +59,9 @@
                 socket.emit('attemptJoin', {username: user, roomcode: code});
             }
             socket.on('joinRoom', function(data) {
-                location.href = 'game.html';
+                localStorage.setItem("username", data.username);
+                localStorage.setItem("roomcode", data.roomcode);
+                location.href = 'lobby.html';
             });
             socket.on('roomCodeTaken', function(data) {
                 document.getElementById('errortext').innerHTML = 'Room code "' + data + '" is already in use!';

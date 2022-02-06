@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head><link href="https://fonts.googleapis.com/css2?family=Oxygen+Mono&family=Oxygen:wght@400;700&display=swap" rel="stylesheet">
+        <style>
+            html, body {
+                height: 100%;
+                margin: 0;
+                background-color: #fff;
+                font-family: oxygen;
+            }
+            #outer {
+                height: 70%;
+                align-items: center;
+                display: flex;
+            }
+            #inner {
+                width: min-content;
+                margin: auto;
+                padding: 40px 40px 20px;
+                text-align: center;
+                vertical-align: middle;
+                border-radius: 25px;
+            }
+        </style>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io();
+        </script>
+    </head>
+    <body>
+        Engineer Gaming
+        <div id="outer">
+            <div id="inner">
+                Waiting for an opponent to join...
+            </div>
+        </div>
+    </body>
+</html>
