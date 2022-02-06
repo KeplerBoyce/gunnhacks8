@@ -11,31 +11,42 @@
             body {
                 display: grid;
                 grid-template-areas:
+                    "t t t"
+                    "l l l"
+                    "s s s"
                     "e p o"
                     "b b b";
                 grid-template-columns: auto 380px auto;
-                grid-template-rows: 79% 20%;
+                grid-template-rows: 8% 2px 7% 64% 20%;
+            }
+            #title {
+                grid-area: t;
+                display: flex;
+                justify-content: center;
+                font-size: 48px;
+                margin: 10px 0 30px;
+            }
+            #line {
+                grid-area: l;
+                margin-left: 40%;
+                width: 20%;
+                background-color: #d0d0d5;
+            }
+            #score {
+                grid-area: s;
+                display: flex;
+                justify-content: center;
+                font-size: 30px;
+                margin-top: 10px;
             }
             .container { display: flex; align-items: center; padding: 10px; }
             #player { grid-area: p; justify-content: center; }
             #opponent { grid-area: o; justify-content: left; }
-            #opponentinner { 
-                display: grid;
-                grid-template-areas:
-                    "a"
-                    "b";
-            }
-            #opponentname {
-                grid-area: a;
-                display: flex;
-                justify-content: center;
-                margin-bottom: 5px;
-            }
             #keyboard { grid-area: b; justify-content: center; }
             .playerth {
                 width: 60px;
                 height: 60px;
-                border: 2px solid #ccc;
+                border: 2px solid #c0c0c5;
                 font-size: 30px;
                 font-weight: 700;
                 text-transform: uppercase;
@@ -43,10 +54,10 @@
             .opponentth {
                 width: 25px;
                 height: 25px;
-                border: 2px solid #ccc;
+                border: 2px solid #c0c0c5;
             }
             #gametable { border-spacing: 5px; }
-            #opponenttable { grid-area: b; border-spacing: 2px; }
+            #opponenttable { border-spacing: 2px; }
             #keyboardgrid {
                 display: grid;
                 grid-template-areas:
@@ -62,7 +73,7 @@
                 margin: 3px;
                 border: none;
                 border-radius: 5px;
-                background-color: #ddd;
+                background-color: #d0d0d5;
                 font-weight: 600;
             }
             .keyboardrow > button:hover {
@@ -75,11 +86,11 @@
         <script src="/socket.io/socket.io.js"></script>
         <script>
             var socket = io();
-            var roomcode = location.href.split("?")[1];
-            var username = localStorage.getItem("username");
+            var roomcode = location.href.split("?")[1].split("#")[0];
+            var username = location.href.split("?")[1].split("#")[1];
             var answerList = [], guessList = [];
             var row = 0, col = 0;
-            var opponentId, opponentName;
+            var opponentId, opponentName;console.log(username);
             var table, opponentTable;
             var answer, numEach;
             var alph = "abcdefghijklmnopqrstuvwxyz";
@@ -104,9 +115,9 @@
             socket.on('opponentIdAndName', function(data) {
                 opponentId = data.idValue;
                 opponentName = data.username;
-                document.getElementById("opponentname").innerHTML = opponentName;
             });
             socket.on('sendColorsToClient', function(data) {
+                console.log("coloring things");
                 if (data.idValue === opponentId) {
                     for (var i = 0; i < 5; i++) {
                         var color = "#fff";
@@ -121,7 +132,13 @@
             });
             socket.on('opponentWon', function(data) {
                 if (data.idValue === opponentId) {
+                    socket.emit('requestScores', {roomcode: roomcode, username: username});
                     console.log("lost");
+                }
+            });
+            socket.on('updateScores', function(data) {
+                if (data.roomcode == roomcode) {
+                    document.getElementById("score").innerHTML = data.leftscore + " - " + data.rightscore;
                 }
             });
             function initGrids() {
@@ -150,6 +167,9 @@
                 if (col > 0) {
                     col--;
                     table.rows[row].cells[col].innerHTML = "";
+                    for (var i = 0; i < 5; i++) {
+                        table.rows[row].cells[i].style.border = "2px solid #ccc";
+                    }
                 }
             }
             function enter() {
@@ -161,7 +181,8 @@
                     if (guessList.indexOf(guess) > -1) {
                         guessWord(guess);
                         if (guess === answer) {
-                            socket.emit('win', {roomcode: roomcode});
+                            socket.emit('win', {roomcode: roomcode, username: username});
+                            socket.emit('requestScores', {roomcode: roomcode, username: username});
                             won = true;
                         }
                         row++;
@@ -170,7 +191,9 @@
                             //ran out of guesses
                         }
                     } else {
-                        //invalid guess
+                        for (var i = 0; i < 5; i++) {
+                            table.rows[row].cells[i].style.border = "2px solid #a67676";
+                        }
                     }
                 }
             }
@@ -190,16 +213,22 @@
                         table.rows[row].cells[i].style["background-color"] = "#71ab67";
                         colors[i] = 2;
                         keyElem.style["background-color"] = "#71ab67";
+                        keyElem.style.color = "#fff";
                     } else if (yellow[alph.indexOf(guess.charAt(i))] > 0) {
                         table.rows[row].cells[i].style["background-color"] = "#c4b44b";
                         yellow[alph.indexOf(guess.charAt(i))]--;
                         colors[i] = 1;
-                        if (keyElem.style["background-color"] !== "#71ab67") {
-                            keyElem.style["background-color"] = "#c4b44b"
+                        if (keyElem.style["background-color"] !== "rgb(113, 171, 103)") {
+                            keyElem.style["background-color"] = "#c4b44b";
                         }
+                        keyElem.style.color = "#fff";
                     } else {
                         table.rows[row].cells[i].style["background-color"] = "#828282";
-                        keyElem.style["background-color"] = "#828282"
+                        if (keyElem.style["background-color"] !== "rgb(113, 171, 103)" &&
+                            keyElem.style["background-color"] !== "rgb(196, 180, 75)") {
+                            keyElem.style["background-color"] = "#828282";
+                        }
+                        keyElem.style.color = "#fff";
                     }
                     table.rows[row].cells[i].style.color = "#fff";
                 }
@@ -208,14 +237,14 @@
         </script>
     </head>
     <body>
+        <div id="title">Wordle</div>
+        <div id="line"></div>
+        <div id="score">0 - 0</div>
         <div class="container" id="player">
             <table id="gametable"></table>
         </div>
         <div class="container" id="opponent">
-            <div class="container" id="opponentinner">
-                <div id="opponentname"></div>
-                <table id="opponenttable"></table>
-            </div>
+            <table id="opponenttable"></table>
         </div>
         <div class="container" id="keyboard">
             <div id="keyboardgrid">

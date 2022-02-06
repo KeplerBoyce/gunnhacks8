@@ -37,12 +37,15 @@
                 filter: brightness(85%);
                 cursor: pointer;
             }
+            #numtext { font-size: 16px; margin: 10px 0; }
+            #numinput { font-size: 16px; width: 30px; }
+            #errortext { font-size: 16px; color: #f00; margin-top: 10px; }
         </style>
         <script src="/socket.io/socket.io.js"></script>
         <script>
             var socket = io();
-            var roomcode = location.href.split("?")[1];
-            var username = localStorage.getItem("username");
+            var roomcode = location.href.split("?")[1].split("#")[0];
+            var username = location.href.split("?")[1].split("#")[1];
             var opponentName;
             var id;
             var hasOpponent = false;
@@ -78,9 +81,18 @@
             }
             function play(first) {
                 if (hasOpponent) {
-                    localStorage.setItem("username", username);
-                    if (first) socket.emit('startOpponentGame', {roomcode: roomcode, username: opponentName});
-                    location.href = "game.html?" + roomcode;
+                    var numWorks = true;
+                    var numPoints = document.getElementById("numinput").value;
+                    numPoints.split('').forEach(c => {
+                        if ("0123456789".indexOf(c) < 0) {
+                            document.getElementById("errortext").innerHTML = "Invalid number of points";
+                            numWorks = false;
+                        }
+                    });
+                    if (numWorks) {
+                        if (first) socket.emit('startOpponentGame', {roomcode: roomcode, username: opponentName});
+                        location.href = "game.html?" + roomcode + "#" + username;
+                    }
                 }
             }
         </script>
@@ -93,6 +105,9 @@
                 <div id="send">Send the room code to a friend!</div>
                 <div id="wait">Waiting for an opponent to join...</div>
                 <button id="start" onclick="play(true)">Start Game</button>
+                <div id="numtext">Points needed to win:</div>
+                <input type="text" maxlength="5" value="5" id="numinput">
+                <div id="errortext"></div>
             </div>
         </div>
     </body>

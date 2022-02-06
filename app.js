@@ -27,7 +27,7 @@ io.on('connection', function(socket) {
             socket.emit('roomCodeTaken', data.roomcode);
             console.log('room code ' + data.roomcode + ' is taken');
         } else {
-            rooms[data.roomcode] = {usernames: [data.username], userIds: [socket.id], answer: ""};
+            rooms[data.roomcode] = {usernames: [data.username], userIds: [socket.id], answer: "", score0: 0, score1: 0};
             socket.emit('joinRoom', {username: data.username, roomcode: data.roomcode});
             console.log(data.username + ' created room ' + data.roomcode);
         }
@@ -72,7 +72,7 @@ io.on('connection', function(socket) {
     });
     socket.on('requestAnswersAndGuesses', function(data) {
         var answer;
-        if(rooms[data.roomcode].answer === "") {
+        if (rooms[data.roomcode].answer === "") {
             answer = answerList[Math.floor(Math.random()*answerList.length)];
             rooms[data.roomcode].answer = answer;
         } else {
@@ -105,22 +105,32 @@ io.on('connection', function(socket) {
         console.log('sent opponent id and name to ' + socket.id);
     });
     socket.on('startOpponentGame', function(data) {
-        console.log('yo');
         var usernames = rooms[data.roomcode].usernames;
         var userIds = rooms[data.roomcode].userIds;
         var id;
         if (usernames[0] === data.username) id = userIds[0];
         else id = userIds[1];
-        socket.emit('startGame', {idValue: id});
+        socket.broadcast.emit('startGame', {idValue: id});
         console.log('started game for ' + id);
     });
     socket.on('win', function(data) {
         var userIds = rooms[data.roomcode].userIds;
+        var usernames = rooms[data.roomcode].usernames;
         var opponentId;
-        if (userIds[0] === socket.id) opponentId = userIds[1];
-        else opponentId = userIds[0];
+        if (usernames[0] === data.username) {
+            rooms[data.roomcode].score0++;
+            opponentId = userIds[1];
+        } else {
+            rooms[data.roomcode].score1++;
+            opponentId = userIds[0];
+        }
         socket.broadcast.emit('opponentWon', {idValue: opponentId});
-        console.log('player ' + socket.id + ' won');
+        console.log('player ' + socket.id + ' won the round');
+    });
+    socket.on('requestScores', function(data) {
+        console.log(data.username);
+        if (rooms[data.roomcode].usernames.indexOf(data.username) == 0) socket.broadcast.emit('updateScores', {roomcode: data.roomcode, leftscore: rooms[data.roomcode].score1, rightscore: rooms[data.roomcode].score0});
+        else socket.broadcast.emit('updateScores', {roomcode: data.roomcode, leftscore: rooms[data.roomcode].score0, rightscore: rooms[data.roomcode].score1});
     });
     socket.on('disconnect', function() {
         console.log("a user disconnected");
