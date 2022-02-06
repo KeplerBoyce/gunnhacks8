@@ -1,9 +1,89 @@
 <!DOCTYPE html>
 <html>
-   <head><title>Hello world</title></head>
-   <script src="/socket.io/socket.io.js"></script>
-   <script>
-      var socket = io();
-   </script>
-   <body>Hello world</body>
+    <head>
+		<link href="https://fonts.googleapis.com/css2?family=Oxygen:wght@300;400&display=swap" rel="stylesheet">
+        <style>
+            html, body {
+                height: 100%;
+                margin: 0;
+                background-color: #ddd;
+                font-family: oxygen;
+            }
+            .container {
+                height: 70%;
+                align-items: center;
+                display: flex;
+            }
+            .container > div {
+                width: min-content;
+                margin: auto;
+                padding: 40px 40px 20px;
+                text-align: center;
+                vertical-align: middle;
+                border-radius: 25px;
+                background-color: #fff;
+            }
+            #title { font-size: 48px; margin-bottom: 30px; }
+            #buttons { margin: 10px 5px 10px; }
+            button {
+                padding: 4px 8px;
+                border: none;
+                border-radius: 5px;
+                color: #fff;
+                font-weight: 600;
+            }
+            input {
+                margin-top: 5px;
+                padding: 4px 8px;
+                border: 1px solid #777;
+                border-radius: 5px;
+            }
+            input:hover { border: 1px solid #333; }
+            #create { background-color: #53a7eb; }
+            #create:hover { background-color: #4189c4; }
+            #join { background-color: #44b457; }
+            #join:hover { background-color: #329642; }
+            #errortext { color: #ff0000; }
+        </style>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io();
+            function create() {
+                var user = document.getElementById("username").value;
+                var code = document.getElementById("roomcode").value;
+                socket.emit('attemptCreate', {username: user, roomcode: code});
+            }
+            function join() {
+                var user = document.getElementById("username").value;
+                var code = document.getElementById("roomcode").value;
+                socket.emit('attemptJoin', {username: user, roomcode: code});
+            }
+            socket.on('joinRoom', function(data) {
+                location.href = './game.html';
+            });
+            socket.on('roomCodeTaken', function(data) {
+                document.getElementById('errortext').innerHTML = 'Room code "' + data + '" is already in use!';
+            });
+            socket.on('invalidCode', function(data) {
+                document.getElementById('errortext').innerHTML = 'No room with code "' + data + '"!';
+            });
+            socket.on('userAlreadyInRoom', function(data) {
+                document.getElementById('errortext').innerHTML = 'Already a user "' + data.username + '" in room!';
+            });
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <div>
+                <header id="title">Wordle</header>
+                <input type="text" id="username" maxlength=20 placeholder="Your name..."><br>
+                <input type="text" id="roomcode" maxlength=20 placeholder="Room code..."><br>
+                <div id="buttons">
+                    <button id="create" onclick="create()">Create room</button>
+                    <button id="join" onclick="join()">Join room</button>
+                </div>
+                <span id="errortext"></span>
+            </div>
+        </div>
+    </body>
 </html>
