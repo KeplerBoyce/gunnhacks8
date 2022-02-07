@@ -22,14 +22,15 @@
                 vertical-align: middle;
                 border-radius: 25px;
             }
-            #title { font-size: 60px; margin-bottom: 30px; }
-            #text { font-size: 16px; font-style: italic; margin-bottom: 20px; }
-            #buttons { margin: 10px 5px 10px; }
+            #title { font-size: max(60px, 6vh); margin-bottom: 10px; }
+            #kepler { font-size: max(14px, 1.4vh); font-style: italic; margin-bottom: 30px; color: #555 }
+            #text { font-size: max(16px, 1.6vh); font-style: italic; margin-bottom: 20px; }
             button {
-                padding: 6px 10px 5px;
+                padding: max(6px, 0.6vh) max(10px, 1vh) max(5px, 0.5vh);
+                margin: max(5px, 0.5vh) 0 0;
                 border: none;
-                border-radius: 5px;
-                font-size: 18px;
+                border-radius: max(5px, 0.5vh);
+                font-size: max(18px, 1.7vh);
                 color: #fff;
             }
             button:hover {
@@ -37,11 +38,11 @@
                 cursor: pointer;
             }
             input {
-                margin-top: 5px;
-                padding: 6px 10px 5px;
+                margin-top: max(5px, 0.5vh);
+                padding: max(6px, 0.6vh) max(10px, 1vh) max(5px, 0.5vh);
                 border: 1px solid #777;
-                border-radius: 5px;
-                font-size: 18px;
+                border-radius: max(5px, 0.5vh);
+                font-size: max(18px, 1.7vh);
             }
             input:hover { border: 1px solid #333; }
             #create { background-color: #53a7eb; }
@@ -82,7 +83,8 @@
         <div id="outer">
             <div id="inner">
                 <header id="title">kwordle</header>
-                <div id="text">1v1 online wordle; first to solve 5 puzzles wins</div>
+                <div id="kepler">Made by Kepler Boyce<br>for <a href="https://github.com/KeplerBoyce/gunnhacks8" target="blank">GunnHacks 8.0</a></div>
+                <div id="text">1-v-1 online wordle; first to solve 5 puzzles wins</div>
                 <input type="text" id="username" maxlength=20 placeholder="Your name..."><br>
                 <input type="text" id="roomcode" maxlength=20 placeholder="Room code..."><br>
                 <div id="buttons">
