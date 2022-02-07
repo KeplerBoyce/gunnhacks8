@@ -23,35 +23,60 @@
                 border-radius: 25px;
             }
             #title { font-size: max(60px, 6vh); margin-bottom: 10px; }
-            #kepler { font-size: max(14px, 1.4vh); font-style: italic; margin-bottom: 30px; color: #555 }
-            #text { font-size: max(16px, 1.6vh); font-style: italic; margin-bottom: 20px; }
+            #kepler { font-size: max(16px, 1.6vh); font-style: italic; margin-bottom: 30px; color: #555 }
+            #text { font-size: max(20px, 2vh); font-style: italic; margin-bottom: 20px; }
             button {
-                padding: max(6px, 0.6vh) max(10px, 1vh) max(5px, 0.5vh);
+                padding: max(8px, 0.8vh) max(12px, 1.2vh);
                 margin: max(5px, 0.5vh) 0 0;
                 border: none;
                 border-radius: max(5px, 0.5vh);
-                font-size: max(18px, 1.7vh);
+                font-size: max(20px, 1.8vh);
+                font-weight: 700;
                 color: #fff;
             }
-            button:hover {
-                filter: brightness(85%);
-                cursor: pointer;
-            }
+            button:hover { filter: brightness(95%); cursor: pointer; }
+            button:active { filter: brightness(85%); }
             input {
                 margin-top: max(5px, 0.5vh);
                 padding: max(6px, 0.6vh) max(10px, 1vh) max(5px, 0.5vh);
                 border: 1px solid #777;
                 border-radius: max(5px, 0.5vh);
-                font-size: max(18px, 1.7vh);
+                font-size: max(20px, 1.8vh);
             }
             input:hover { border: 1px solid #333; }
+            #buttons { margin-bottom: 10px; }
             #create { background-color: #53a7eb; }
             #join { background-color: #44b457; }
-            #errortext { color: #ff0000; font-style: italic; }
+            #errortext { font-size: max(20px, 1.8vh); color: #ff0000; font-style: italic; }
+            @media (max-width: 1300px) {
+                #title { font-size: 8vh; margin-bottom: 1vh; }
+                #kepler { font-size: 2vh; margin-bottom: 3vh; }
+                #text { font-size: 2.7vh; margin-bottom: 2vh; }
+                #buttons { margin-bottom: 1vh; }
+                #errortext { font-size: 2.7vh; }
+                button {
+                    padding: 1vh 1.5vh;
+                    margin: 1vh 0.2vh 0;
+                    border-radius: 0.5vh;
+                    font-size: 3vh;
+                    color: #fff;
+                }
+                input {
+                    margin-top: 1vh;
+                    padding: 1vh 1.5vh;
+                    border-radius: 5px, 0.5vh;
+                    font-size: 3vh;
+                }
+            }
         </style>
         <script src="/socket.io/socket.io.js"></script>
         <script>
             var socket = io();
+            window.onload = function() {
+                if (location.href.split('?')[1] === "inactive") {
+                    document.getElementById('errortext').innerHTML = 'Kicked for inactivity';
+                }
+            }
             function create() {
                 var user = document.getElementById("username").value;
                 var code = document.getElementById("roomcode").value;
@@ -63,7 +88,7 @@
                 socket.emit('attemptJoin', {username: user, roomcode: code});
             }
             socket.on('joinRoom', function(data) {
-                location.href = 'lobby.html?' + data.roomcode + "#" + data.username;
+                location.href = 'lobby.html?r=' + data.roomcode + "&u=" + data.username;
             });
             socket.on('roomCodeTaken', function(data) {
                 document.getElementById('errortext').innerHTML = 'Room code "' + data + '" is already in use!';

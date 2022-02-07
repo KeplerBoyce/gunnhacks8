@@ -29,16 +29,17 @@
                 align-items: top;
             }
             #homescreen {
-                padding: 1vh 1vh 0.8vh;
+                padding: 1vh 1.5vh 0.9vh;
                 height: min-content;
-                font-size: 1.5vh;
+                font-size: 2vh;
                 font-weight: 700;
                 border: none;
                 border-radius: 5px;
                 background-color: #b64a4a;
                 color: #fff;
             }
-            #homescreen:hover { filter: brightness(85%); cursor: pointer; }
+            #homescreen:hover { filter: brightness(95%); cursor: pointer; }
+            #homescreen:active { filter: brightness(85%); }
             #title {
                 grid-area: t;
                 display: flex;
@@ -64,7 +65,7 @@
                 display: flex;
                 justify-content: center;
                 font-size: 3vh;
-                margin-top: 10px;
+                margin-top: 1vh;
             }
             #scoreleft {
                 grid-area: l;
@@ -104,7 +105,7 @@
                 width: min(9vw, 6vh);
                 height: min(9vw, 6vh);
                 border: 0.25vh solid #c0c0c5;
-                font-size: min(30px, 3vh);
+                font-size: max(30px, 2.8vh);
                 font-weight: 700;
                 text-transform: uppercase;
             }
@@ -113,7 +114,7 @@
                 height: min(3vw, 3vh);
                 border: 0.25vh solid #c0c0c5;
                 color: #fff;
-                font-size: min(18px, 1.8vh);
+                font-size: max(18px, 1.6vh);
                 font-weight: 700;
                 text-transform: uppercase;
             }
@@ -138,21 +139,21 @@
                 border: none;
                 border-radius: 0.5vh;
                 background-color: #d0d0d5;
-                font-size: 1.5vh;
+                font-size: 2vh;
                 font-weight: 600;
             }
-            .keyboardrow > button:hover {
-                filter: brightness(85%);
-                cursor: pointer;
-            }
+            #enter { font-size: 1.5vh; }
+            .keyboardrow > button:hover { filter: brightness(95%); cursor: pointer; }
+            .keyboardrow > button:active { filter: brightness(85%); }
             .smallbutton { width: 4.5vh; height: 6vh; }
             .widebutton { width: 6.9vh; height: 6vh; }
         </style>
         <script src="/socket.io/socket.io.js"></script>
         <script>
             var socket = io();
-            var roomcode = location.href.split("?")[1].split("#")[0];
-            var username = location.href.split("?")[1].split("#")[1];
+            const params = new URLSearchParams(location.search);
+            const roomcode = params.get("r");
+            const username = params.get("u");
             var answerList = [], guessList = [];
             var row = 0, col = 0;
             var table, opponentTable;
@@ -269,6 +270,12 @@
                     }, 1000);
                 }
             });
+            socket.on('returnToMainMenu', function(data) {
+                if (data.roomcode === roomcode && data.username === username) {
+                    location.href = '/?inactive';
+                    console.log("yo");
+                }
+            });
             function initGrids() {
                 for (var row = 0; row < 6; row++) {
                     var rowElem = document.createElement('tr');
@@ -285,7 +292,11 @@
                     opponentTable.appendChild(rowElem2);
                 }
             }
+            document.addEventListener('mousemove', function(event) {
+                socket.emit('resetTimer', {roomcode: roomcode, username: username});
+            })
             document.addEventListener('keydown', function(event) {
+                socket.emit('resetTimer', {roomcode: roomcode, username: username});
                 var key = String.fromCharCode(event.keyCode).toLowerCase();
                 if (alph.indexOf(key) > -1) typeKey(key);
                 else if (event.keyCode === 8) backspace();
@@ -302,7 +313,7 @@
                     col--;
                     table.rows[row].cells[col].innerHTML = "";
                     for (var i = 0; i < 5; i++) {
-                        table.rows[row].cells[i].style.border = "2px solid #ccc";
+                        table.rows[row].cells[i].style.border = "0.25vh solid #c0c0c5";
                     }
                 }
             }
@@ -339,7 +350,7 @@
                         }
                     } else {
                         for (var i = 0; i < 5; i++) {
-                            table.rows[row].cells[i].style.border = "2px solid #a67676";
+                            table.rows[row].cells[i].style.border = "0.25vh solid #a67676";
                         }
                     }
                 }
