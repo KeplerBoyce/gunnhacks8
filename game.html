@@ -294,7 +294,7 @@
             }
             document.addEventListener('mousemove', function(event) {
                 socket.emit('resetTimer', {roomcode: roomcode, username: username});
-            })
+            });
             document.addEventListener('keydown', function(event) {
                 socket.emit('resetTimer', {roomcode: roomcode, username: username});
                 var key = String.fromCharCode(event.keyCode).toLowerCase();
