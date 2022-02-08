@@ -35,7 +35,7 @@
             }
             #start:hover { filter: brightness(95%); cursor: pointer; }
             #start:active { filter: brightness(85%); }
-            @media (max-width: 640px) {
+            @media only screen and (max-device-width: 640px) {
                 #title { font-size: 8vh; margin-bottom: 2.5vh; }
                 #roomcode { font-size: 5vh; margin-bottom: 1vh; }
                 #send { font-size: 3vh; margin-bottom: 4vh; }
@@ -64,6 +64,9 @@
                 socket.emit('requestId', {roomcode: roomcode, username: username});
                 socket.emit('requestOpponentName', {roomcode: roomcode, username: username})
             }
+            setInterval(function() {
+                socket.emit('heartbeat', {roomcode: roomcode, username: username});
+            }, 1000);
             socket.on('returnId', function(data) {
                 id = data.idValue;
             });
@@ -85,8 +88,10 @@
             socket.on('returnToMainMenu', function(data) {
                 if (data.roomcode === roomcode && data.username === username) {
                     location.href = '/?inactive';
-                    console.log("yo");
                 }
+            });
+            socket.on('forceReturn', function() {
+                location.href = '/';
             });
             document.addEventListener('mousemove', function(event) {
                 socket.emit('resetTimer', {roomcode: roomcode, username: username});

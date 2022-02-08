@@ -164,9 +164,12 @@
                 table = document.getElementById('gametable');
                 opponentTable = document.getElementById('opponenttable');
                 initGrids();
-                socket.emit('requestAnswersAndGuesses', {roomcode: roomcode});
+                socket.emit('requestAnswersAndGuesses', {roomcode: roomcode, username: username});
                 socket.emit('requestScores', {roomcode: roomcode, username: username});
             }
+            setInterval(function() {
+                socket.emit('heartbeat', {roomcode: roomcode, username: username});
+            }, 1000);
             socket.on('answersAndGuesses', function(data) {
                 answerList = data.answers;
                 guessList = data.guesses;
@@ -275,6 +278,9 @@
                     location.href = '/?inactive';
                     console.log("yo");
                 }
+            });
+            socket.on('forceReturn', function() {
+                location.href = '/';
             });
             function initGrids() {
                 for (var row = 0; row < 6; row++) {
