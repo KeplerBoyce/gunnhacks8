@@ -80,6 +80,13 @@
                     setWaitElement();
                 }
             });
+            socket.on('opponentDisconnect', function(data) {
+                console.log("a");
+                if (data.roomcode === roomcode) {
+                    console.log("b");
+                    unsetWaitElement(data.username);
+                }
+            });
             socket.on('startGame', function(data) {
                 if (data.idValue === id) {
                     play(false);
@@ -99,9 +106,15 @@
             function setWaitElement() {
                 document.getElementById("wait").innerHTML = "Playing against " + opponentName;
                 document.getElementById('start').style["background-color"] = "#44b457";
-                document.getElementById('start').style["background-color"] = "#44b457";
                 document.getElementById('start').style.color = "#fff";
                 hasOpponent = true;
+            }
+            function unsetWaitElement(usr) {
+                opponentName = "";
+                document.getElementById("wait").innerHTML = usr + " disconnected. Waiting for an opponent to join...";
+                document.getElementById('start').style["background-color"] = "#ddd";
+                document.getElementById('start').style.color = "#aaa";
+                hasOpponent = false;
             }
             function play(first) {
                 if (hasOpponent) {

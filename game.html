@@ -261,11 +261,12 @@
             });
             socket.on('userLeft', function(data) {
                 if (data.roomcode === roomcode && data.opponentName === username) {
-                    document.getElementById('resulttext').innerHTML = data.username + " left the room. Returning to menu in 3...";
+                    var usr = data.username === undefined ? "Opponent" : data.username;
+                    document.getElementById('resulttext').innerHTML = usr + " left the room. Returning to menu in 3...";
                     setTimeout(function() {
-                        document.getElementById('resulttext').innerHTML = data.username + " left the room. Returning to menu in 2...";
+                        document.getElementById('resulttext').innerHTML = usr + " left the room. Returning to menu in 2...";
                     setTimeout(function() {
-                        document.getElementById('resulttext').innerHTML = data.username + " left the room. Returning to menu in 1...";
+                        document.getElementById('resulttext').innerHTML = usr + " left the room. Returning to menu in 1...";
                     setTimeout(function() {
                         backToMenu();
                     }, 1000);
@@ -276,7 +277,6 @@
             socket.on('returnToMainMenu', function(data) {
                 if (data.roomcode === roomcode && data.username === username) {
                     location.href = '/?inactive';
-                    console.log("yo");
                 }
             });
             socket.on('forceReturn', function() {
