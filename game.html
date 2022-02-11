@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
-    <head><link href="https://fonts.googleapis.com/css2?family=Oxygen+Mono&family=Oxygen:wght@400;700&display=swap" rel="stylesheet">
+    <head>
+        <meta name="viewport" content="user-scalable=no"/>
+        <link href="https://fonts.googleapis.com/css2?family=Oxygen+Mono&family=Oxygen:wght@400;700&display=swap" rel="stylesheet">
         <style>
             html, body {
                 height: 100%;
@@ -20,7 +22,8 @@
                     "m m m"
                     "b b b";
                 grid-template-columns: calc(45vw - (min(9vw, 6vh)*5 + 100px)/2) calc(min(9vw, 6vh)*5 + 100px) calc(55vw - (min(9vw, 6vh)*5 + 100px)/2);
-                grid-template-rows: 8% 0.3vh 5% 3% 3% 50% 10% 20%;
+                grid-template-rows: 8% 0.3vh 5% 3% 3% 50% 8% 20%;
+                touch-action: manipulation;
             }
             #homescreencontainer {
                 grid-area: m;
@@ -87,15 +90,15 @@
                 grid-area: r;
                 display: flex;
                 justify-content: center;
-                font-size: 18px;
-                margin-top: 10px;
+                font-size: 1.8vh;
+                margin-top: 1vh;
             }
             #nextround {
                 grid-area: n;
                 display: flex;
                 justify-content: center;
-                font-size: 18px;
-                margin-top: 10px;
+                font-size: 1.8vh;
+                margin-top: 1vh;
             }
             .container { display: flex; align-items: center; padding: 10px; }
             #player { grid-area: p; justify-content: center; }
@@ -141,12 +144,25 @@
                 background-color: #d0d0d5;
                 font-size: 2vh;
                 font-weight: 600;
+                -webkit-tap-highlight-color: transparent;
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
             }
             #enter { font-size: 1.5vh; }
             .keyboardrow > button:hover { filter: brightness(95%); cursor: pointer; }
             .keyboardrow > button:active { filter: brightness(85%); }
+            .keyboardrow > button:focus { outline: none !important; }
             .smallbutton { width: 4.5vh; height: 6vh; }
             .widebutton { width: 6.9vh; height: 6vh; }
+            @media only screen and (max-device-width: 640px) {
+                .keyboardrow > button { margin: 0.5vw; }
+                .smallbutton { width: 9vw; height: 12vw; }
+                .widebutton { width: 14vw; height: 12vw; }
+            }
         </style>
         <script src="/socket.io/socket.io.js"></script>
         <script>
@@ -166,6 +182,19 @@
                 initGrids();
                 socket.emit('requestAnswersAndGuesses', {roomcode: roomcode, username: username});
                 socket.emit('requestScores', {roomcode: roomcode, username: username});
+                var keyElems = document.getElementsByClassName("smallbutton");
+                var keyArr = [...keyElems];
+                keyArr.forEach(e => {
+                    e.addEventListener('mousedown', function() {
+                        typeKey(e.id);
+                    });
+                });
+                document.getElementById("enter").addEventListener('mousedown', function(event) {
+                    enter();
+                });
+                document.getElementById("backspace").addEventListener('mousedown', function(event) {
+                    backspace();
+                });
             }
             setInterval(function() {
                 socket.emit('heartbeat', {roomcode: roomcode, username: username});
@@ -469,38 +498,38 @@
         <div class="container" id="keyboard">
             <div id="keyboardgrid">
                 <div class="keyboardrow" id="toprow">
-                    <button class="smallbutton" id="q" onclick="typeKey('q')">Q</button>
-                    <button class="smallbutton" id="w" onclick="typeKey('w')">W</button>
-                    <button class="smallbutton" id="e" onclick="typeKey('e')">E</button>
-                    <button class="smallbutton" id="r" onclick="typeKey('r')">R</button>
-                    <button class="smallbutton" id="t" onclick="typeKey('t')">T</button>
-                    <button class="smallbutton" id="y" onclick="typeKey('y')">Y</button>
-                    <button class="smallbutton" id="u" onclick="typeKey('u')">U</button>
-                    <button class="smallbutton" id="i" onclick="typeKey('i')">I</button>
-                    <button class="smallbutton" id="o" onclick="typeKey('o')">O</button>
-                    <button class="smallbutton" id="p" onclick="typeKey('p')">P</button>
+                    <button class="smallbutton" id="q">Q</button>
+                    <button class="smallbutton" id="w">W</button>
+                    <button class="smallbutton" id="e">E</button>
+                    <button class="smallbutton" id="r">R</button>
+                    <button class="smallbutton" id="t">T</button>
+                    <button class="smallbutton" id="y">Y</button>
+                    <button class="smallbutton" id="u">U</button>
+                    <button class="smallbutton" id="i">I</button>
+                    <button class="smallbutton" id="o">O</button>
+                    <button class="smallbutton" id="p">P</button>
                 </div>
                 <div class="keyboardrow" id="middlerow">
-                    <button class="smallbutton" id="a" onclick="typeKey('a')">A</button>
-                    <button class="smallbutton" id="s" onclick="typeKey('s')">S</button>
-                    <button class="smallbutton" id="d" onclick="typeKey('d')">D</button>
-                    <button class="smallbutton" id="f" onclick="typeKey('f')">F</button>
-                    <button class="smallbutton" id="g" onclick="typeKey('g')">G</button>
-                    <button class="smallbutton" id="h" onclick="typeKey('h')">H</button>
-                    <button class="smallbutton" id="j" onclick="typeKey('j')">J</button>
-                    <button class="smallbutton" id="k" onclick="typeKey('k')">K</button>
-                    <button class="smallbutton" id="l" onclick="typeKey('l')">L</button>
+                    <button class="smallbutton" id="a">A</button>
+                    <button class="smallbutton" id="s">S</button>
+                    <button class="smallbutton" id="d">D</button>
+                    <button class="smallbutton" id="f">F</button>
+                    <button class="smallbutton" id="g">G</button>
+                    <button class="smallbutton" id="h">H</button>
+                    <button class="smallbutton" id="j">J</button>
+                    <button class="smallbutton" id="k">K</button>
+                    <button class="smallbutton" id="l">L</button>
                 </div>
                 <div class="keyboardrow" id="bottomrow">
-                    <button class="widebutton" id="enter" onclick="enter()">ENTER</button>
-                    <button class="smallbutton" id="z" onclick="typeKey('z')">Z</button>
-                    <button class="smallbutton" id="x" onclick="typeKey('x')">X</button>
-                    <button class="smallbutton" id="c" onclick="typeKey('c')">C</button>
-                    <button class="smallbutton" id="v" onclick="typeKey('v')">V</button>
-                    <button class="smallbutton" id="b" onclick="typeKey('b')">B</button>
-                    <button class="smallbutton" id="n" onclick="typeKey('n')">N</button>
-                    <button class="smallbutton" id="m" onclick="typeKey('m')">M</button>
-                    <button class="widebutton" id="backspace" onclick="backspace()">⌫</button>
+                    <button class="widebutton" id="enter">ENTER</button>
+                    <button class="smallbutton" id="z">Z</button>
+                    <button class="smallbutton" id="x">X</button>
+                    <button class="smallbutton" id="c">C</button>
+                    <button class="smallbutton" id="v">V</button>
+                    <button class="smallbutton" id="b">B</button>
+                    <button class="smallbutton" id="n">N</button>
+                    <button class="smallbutton" id="m">M</button>
+                    <button class="widebutton" id="backspace">⌫</button>
                 </div>
             </div>
         </div>

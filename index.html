@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta name="viewport" content="user-scalable=no"/>
 		<link href="https://fonts.googleapis.com/css2?family=Oxygen:wght@300;400;700&display=swap" rel="stylesheet">
         <style>
             html, body {
@@ -9,6 +10,7 @@
                 background-color: #fff;
                 font-family: oxygen;
             }
+            body { touch-action: manipulation; }
             #outer {
                 height: 70%;
                 align-items: center;
@@ -49,23 +51,23 @@
             #join { background-color: #44b457; }
             #errortext { font-size: max(20px, 1.8vh); color: #ff0000; font-style: italic; }
             @media only screen and (max-device-width: 640px) {
-                #title { font-size: 8vh; margin-bottom: 1vh; }
-                #kepler { font-size: 2vh; margin-bottom: 3vh; }
-                #text { font-size: 2.7vh; margin-bottom: 2vh; }
-                #buttons { margin-bottom: 1vh; }
-                #errortext { font-size: 2.7vh; }
+                #title { font-size: 12vw; margin-bottom: 1.6vw; }
+                #kepler { font-size: 3.2vw; margin-bottom: 5.2vw; }
+                #text { font-size: 4.8vw; margin-bottom: 3.2vw; }
+                #buttons { margin-bottom: 1.6vw; }  
+                #errortext { font-size: 4.8vw; }
                 button {
-                    padding: 1vh 1.5vh;
-                    margin: 1vh 0.2vh 0;
-                    border-radius: 0.5vh;
-                    font-size: 3vh;
+                    padding: 1.6vw 2.8vw;
+                    margin: 1.6vw 0.4vw 0;
+                    border-radius: 1.2vw;
+                    font-size: 5.6vw;
                     color: #fff;
                 }
                 input {
-                    margin-top: 1vh;
-                    padding: 1vh 1.5vh;
-                    border-radius: 5px, 0.5vh;
-                    font-size: 3vh;
+                    margin-top: 1.6vw;
+                    padding: 1.6vw 2.8vw;
+                    border-radius: 1.2vw;
+                    font-size: 5.6vw;
                 }
             }
         </style>
@@ -78,14 +80,26 @@
                 }
             }
             function create() {
-                var user = document.getElementById("username").value;
-                var code = document.getElementById("roomcode").value;
-                socket.emit('attemptCreate', {username: user, roomcode: code});
+                var user = document.getElementById("username").value.trim();
+                var code = document.getElementById("roomcode").value.trim();
+                if (user === "") {
+                    document.getElementById('errortext').innerHTML = 'Must enter a username!';
+                } else if (code === "") {
+                    document.getElementById('errortext').innerHTML = 'Must enter a room code!';
+                } else {
+                    socket.emit('attemptCreate', {username: user, roomcode: code});
+                }
             }
             function join() {
-                var user = document.getElementById("username").value;
-                var code = document.getElementById("roomcode").value;
-                socket.emit('attemptJoin', {username: user, roomcode: code});
+                var user = document.getElementById("username").value.trim();
+                var code = document.getElementById("roomcode").value.trim();
+                if (user === "") {
+                    document.getElementById('errortext').innerHTML = 'Must enter a username!';
+                } else if (code === "") {
+                    document.getElementById('errortext').innerHTML = 'Must enter a room code!';
+                } else {
+                    socket.emit('attemptJoin', {username: user, roomcode: code});
+                }
             }
             socket.on('joinRoom', function(data) {
                 location.href = 'lobby.html?r=' + data.roomcode + "&u=" + data.username;
@@ -110,8 +124,8 @@
                 <header id="title">kwordle</header>
                 <div id="kepler">Made by Kepler Boyce<br>for <a href="https://github.com/KeplerBoyce/gunnhacks8" target="blank">GunnHacks 8.0</a></div>
                 <div id="text">1-v-1 online wordle; first to solve 5 puzzles wins</div>
-                <input type="text" id="username" maxlength=20 placeholder="Your name..." autocomplete="off"><br>
-                <input type="text" id="roomcode" maxlength=20 placeholder="Room code..." autocomplete="off"><br>
+                <input type="text" id="username" maxlength=20 placeholder="Your name..." autocomplete="off" autocapitalize="none"><br>
+                <input type="text" id="roomcode" maxlength=20 placeholder="Room code..." autocomplete="off" autocapitalize="none"><br>
                 <div id="buttons">
                     <button id="create" onclick="create()">Create Room</button>
                     <button id="join" onclick="join()">Join Room</button>
