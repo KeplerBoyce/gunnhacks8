@@ -160,8 +160,9 @@
             .widebutton { width: 6.9vh; height: 6vh; }
             @media only screen and (max-device-width: 640px) {
                 .keyboardrow > button { margin: 0.5vw; }
-                .smallbutton { width: 9vw; height: 12vw; }
-                .widebutton { width: 14vw; height: 12vw; }
+                .smallbutton { width: 8.5vw; height: min(7vh, 13vw); }
+                .widebutton { width: 13vw; height: min(7vh, 13vw); }
+                body { grid-template-rows: 8% 0.3vh 5% 3% 3% 50% 5% 25%; }
             }
         </style>
         <script src="/socket.io/socket.io.js"></script>
@@ -406,6 +407,7 @@
                             table.rows[i].cells[j].innerHTML = "";
                             table.rows[i].cells[j].style.color = "#000";
                             table.rows[i].cells[j].style["background-color"] = "#fff";
+                            table.rows[i].cells[j].style.border = "0.25vh solid #c0c0c5";
                             opponentTable.rows[i].cells[j].innerHTML = "";
                             opponentTable.rows[i].cells[j].style["background-color"] = "#fff";
                         }
